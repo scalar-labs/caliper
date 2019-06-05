@@ -2,13 +2,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  *
- * @file, definition of the Burrow client worker
+ * @file, definition of the Scalar DL client worker
  */
 
 'use strict';
 
 const {CaliperLocalClient, CaliperUtils} = require('caliper-core');
-const BurrowClient = require('./burrow');
+const ScalarDLClient = require('./scalardl');
 
 let caliperClient;
 /**
@@ -24,7 +24,7 @@ process.on('message', async (message) => {
     try {
         switch (message.type) {
         case 'init': {
-            const blockchain = new BurrowClient(message.absNetworkFile, message.networkRoot);
+            const blockchain = new ScalarDLClient(message.absNetworkFile, message.networkRoot);
             caliperClient = new CaliperLocalClient(blockchain);
             process.send({type: 'ready', data: {pid: process.pid, complete: true}});
             break;

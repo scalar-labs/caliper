@@ -14,5 +14,5 @@
 
 'use strict';
 
-module.exports.AdminClient = require('./lib/burrow');
-module.exports.ClientFactory = require('./lib/burrowClientFactory');
+module.exports.AdminClient = require('./lib/scalardl');
+module.exports.ClientFactory = require('./lib/scalardlClientFactory');
