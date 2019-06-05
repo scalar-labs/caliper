@@ -6,6 +6,7 @@
       "end" : "echo docker-compose -f network/scalardl/docker-compose.yml down"
     }
   },
+  "contract": { "path": "src/contract/scalardl" },
   "scalardl": {
     "network": {
       "client_properties": {
@@ -20,16 +21,16 @@
     },
     "contracts": [
       {
-        "id": "OpenAccount_v5",
-        "name": "com.example.contract.OpenAccount",
+        "id": "OpenAccount",
+        "name": "com.example.contract.simple.OpenAccount",
         "fcn": "open",
-        "path": "contract/scalardl/simple/java/com/example/contract/OpenAccount.class"
+        "path": "build/classes/java/main/com/example/contract/simple/OpenAccount.class"
       },
       {
-        "id": "QueryAccount_v5",
-        "name": "com.example.contract.QueryAccount",
+        "id": "QueryAccount",
+        "name": "com.example.contract.simple.QueryAccount",
         "fcn": "query",
-        "path": "contract/scalardl/simple/java/com/example/contract/QueryAccount.class"}
+        "path": "build/classes/java/main/com/example/contract/simple/QueryAccount.class"}
     ]
   }
 }

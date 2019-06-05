@@ -1,0 +1,13 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'com.scalar-labs', name: 'scalardl-client-sdk', version: '1.1.0'
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8

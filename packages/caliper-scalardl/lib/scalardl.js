@@ -76,19 +76,20 @@ class ScalarDL extends BlockchainInterface {
      */
     init() {
         // Do something that we would like to do just once for a run
-        return Promise.resolve();
+        logger.info('compiling all contracts......');
+        let config  = require(this.configPath);
+        let execSync = require('child_process').execSync;
+        let contractRoot = CaliperUtils.resolvePath(config.contract.path, this.workspaceRoot)
+        let result =  execSync('./gradlew assemble', {cwd: contractRoot});
+        logger.info(result.toString());
+        return CaliperUtils.sleep(2000);
     }
 
     /**
      * Deploy the contracts specified in the network configuration file.
      * @async
      */
-     async installSmartContract() {
-        // Do not use installation function for initial test
-        return Promise.resolve();
-    }
-
-    async _installSmartContract() {
+    async installSmartContract() {
         let config  = require(this.configPath);
         let cp = getClientProperties(config, this.workspaceRoot);
         let clientService = new ClientService(cp);
@@ -96,13 +97,17 @@ class ScalarDL extends BlockchainInterface {
         try {
             logger.info('installing all contracts......');
 
+            let contractRoot = CaliperUtils.resolvePath(config.contract.path, this.workspaceRoot)
             for (const contract of config.scalardl.contracts) {
                 logger.info(`Installing contract ${contract.id}...`);
 
-                const buff = fs.readFileSync(contract.path)
-                const response = await clientService.registerContract(contract.id, contract.name, new Uint8Array(buff));
+                let buff = fs.readFileSync(CaliperUtils.resolvePath(contract.path, contractRoot))
+                let res = await clientService.registerContract(contract.id, contract.name, new Uint8Array(buff));
 
-                // TODO: handling the case the contract already installed
+                let status = res.getStatus()
+                if (status !== 200) {
+                    throw new Error(`Scalar DL responded with status "${status}"`);
+                }
             }
         } catch(err) {
             logger.error(`Scalar DL contracts install failed: ${(err.stack ? err.stack : err)}`);
