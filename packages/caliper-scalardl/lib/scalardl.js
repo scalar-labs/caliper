@@ -71,17 +71,35 @@ class ScalarDL extends BlockchainInterface {
 
     /**
      * Initialize the {ScalarDL} object.
-     * Nothing to do now
      * @return {Promise} The return promise.
+     * @async
      */
-    init() {
+    async init() {
         // Do something that we would like to do just once for a run
         logger.info('compiling all contracts......');
         let config  = require(this.configPath);
+
+        // Build contracts
         let execSync = require('child_process').execSync;
         let contractRoot = CaliperUtils.resolvePath(config.contract.path, this.workspaceRoot)
         let result =  execSync('./gradlew assemble', {cwd: contractRoot});
         logger.info(result.toString());
+
+        // Register a client
+        let cp = getClientProperties(config, this.workspaceRoot);
+        let clientService = new ClientService(cp);
+        try {
+            logger.info('registering a client......');
+            let res = await clientService.registerCertificate();
+            let status = res.getStatus()
+            if (status !== 200) {
+                throw new Error(`Scalar DL responded with status "${status}"`);
+            }
+        } catch(err) {
+            logger.error(`Scalar DL client registration failed: ${(err.stack ? err.stack : err)}`);
+            throw err;
+        }
+
         return CaliperUtils.sleep(2000);
     }
 
