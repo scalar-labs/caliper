@@ -30,7 +30,50 @@
         "id": "QueryAccount",
         "name": "com.example.contract.simple.QueryAccount",
         "fcn": "query",
-        "path": "build/classes/java/main/com/example/contract/simple/QueryAccount.class"}
+        "path": "build/classes/java/main/com/example/contract/simple/QueryAccount.class"
+      },
+      {
+        "id": "CreateAccount",
+        "name": "com.example.contract.smallbank.CreateAccount",
+        "fcn": "create_account",
+        "path": "build/classes/java/main/com/example/contract/smallbank/CreateAccount.class"
+      },
+      {
+        "id": "DepositChecking",
+        "name": "com.example.contract.smallbank.DepositChecking",
+        "fcn": "deposit_checking",
+        "path": "build/classes/java/main/com/example/contract/smallbank/DepositChecking.class"
+      },
+      {
+        "id": "TransactSavings",
+        "name": "com.example.contract.smallbank.TransactSavings",
+        "fcn": "transact_savings",
+        "path": "build/classes/java/main/com/example/contract/smallbank/TransactSavings.class"
+      },
+      {
+        "id": "WriteCheck",
+        "name": "com.example.contract.smallbank.WriteCheck",
+        "fcn": "write_check",
+        "path": "build/classes/java/main/com/example/contract/smallbank/WriteCheck.class"
+      },
+      {
+        "id": "SendPayment",
+        "name": "com.example.contract.smallbank.SendPayment",
+        "fcn": "send_payment",
+        "path": "build/classes/java/main/com/example/contract/smallbank/SendPayment.class"
+      },
+      {
+        "id": "Amalgamate",
+        "name": "com.example.contract.smallbank.Amalgamate",
+        "fcn": "amalgamate",
+        "path": "build/classes/java/main/com/example/contract/smallbank/Amalgamate.class"
+      },
+      {
+        "id": "SmallBankQueryAccount",
+        "name": "com.example.contract.smallbank.QueryAccount",
+        "fcn": "query",
+        "path": "build/classes/java/main/com/example/contract/smallbank/QueryAccount.class"
+      }
     ]
   }
 }
