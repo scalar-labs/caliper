@@ -81,7 +81,7 @@ class ScalarDL extends BlockchainInterface {
 
         // Build contracts
         let execSync = require('child_process').execSync;
-        let contractRoot = CaliperUtils.resolvePath(config.contract.path, this.workspaceRoot)
+        let contractRoot = CaliperUtils.resolvePath(config.contract.path, this.workspaceRoot);
         let result =  execSync('./gradlew assemble', {cwd: contractRoot});
         logger.info(result.toString());
 
@@ -91,7 +91,7 @@ class ScalarDL extends BlockchainInterface {
         try {
             logger.info('registering a client......');
             let res = await clientService.registerCertificate();
-            let status = res.getStatus()
+            let status = res.getStatus();
             if (status !== 200) {
                 throw new Error(`Scalar DL responded with status "${status}"`);
             }
@@ -115,14 +115,14 @@ class ScalarDL extends BlockchainInterface {
         try {
             logger.info('installing all contracts......');
 
-            let contractRoot = CaliperUtils.resolvePath(config.contract.path, this.workspaceRoot)
+            let contractRoot = CaliperUtils.resolvePath(config.contract.path, this.workspaceRoot);
             for (const contract of config.scalardl.contracts) {
                 logger.info(`Installing contract ${contract.id}...`);
 
-                let buff = fs.readFileSync(CaliperUtils.resolvePath(contract.path, contractRoot))
+                let buff = fs.readFileSync(CaliperUtils.resolvePath(contract.path, contractRoot));
                 let res = await clientService.registerContract(contract.id, contract.name, new Uint8Array(buff));
 
-                let status = res.getStatus()
+                let status = res.getStatus();
                 if (status !== 200) {
                     throw new Error(`Scalar DL responded with status "${status}"`);
                 }
@@ -214,7 +214,7 @@ class ScalarDL extends BlockchainInterface {
 
         try {
             let res = await clientService.executeContract(fcnMap[fcn], args);
-            let status = res.getStatus()
+            let status = res.getStatus();
             if (status === 200) {
                 txStatus.SetStatusSuccess();
                 txStatus.SetResult(res.getResult());
@@ -248,8 +248,8 @@ class ScalarDL extends BlockchainInterface {
           - 'customer_id' in the 'smallbank' workload
           - 'item_id' in the 'drm' workload
         */
-        let args = {'query_key': key}
-        return this.execContract(context, contractID, contractVer, fcn, args)
+        let args = {'query_key': key};
+        return this.execContract(context, contractID, contractVer, fcn, args);
     }
 
     /**
