@@ -16,25 +16,25 @@ const logger = CaliperUtils.getLogger('scalardl.js');
 /**
     Read the connection details from the config file.
     @param {object} config Adapter config.
-    @param {string} workspace_root The absolute path to the root location for the configuration files.
+    @param {string} workspaceRoot The absolute path to the root location for the configuration files.
     @return {object} clientProperties.
 */
-function getClientProperties(config, workspace_root) {
+function getClientProperties(config, workspaceRoot) {
     let host = config.scalardl.network.client_properties.host;
     let port = config.scalardl.network.client_properties.port;
     let chid = config.scalardl.network.client_properties.cert_holder_id;
     let cver = config.scalardl.network.client_properties.cert_version;
     let tls  = config.scalardl.network.client_properties.tls_enabled;
-    let cert_pem = fs.readFileSync(CaliperUtils.resolvePath(config.scalardl.network.client_properties.cert_path, workspace_root)).toString();
-    let private_key_pem = fs.readFileSync(CaliperUtils.resolvePath(config.scalardl.network.client_properties.private_key_path, workspace_root)).toString();
+    let certPem = fs.readFileSync(CaliperUtils.resolvePath(config.scalardl.network.client_properties.cert_path, workspaceRoot)).toString();
+    let privateKeyPem = fs.readFileSync(CaliperUtils.resolvePath(config.scalardl.network.client_properties.private_key_path, workspaceRoot)).toString();
 
     return {
         'scalar.ledger.client.server_host': host,
         'scalar.ledger.client.server_port': port,
         'scalar.ledger.client.cert_holder_id': chid,
-        'scalar.ledger.client.cert_pem': cert_pem,
+        'scalar.ledger.client.cert_pem': certPem,
         'scalar.ledger.client.cert_version': cver,
-        'scalar.ledger.client.private_key_pem': private_key_pem,
+        'scalar.ledger.client.private_key_pem': privateKeyPem,
         'scalar.ledger.client.tls.enabled': tls,
     };
 }
@@ -59,14 +59,14 @@ class ScalarDL extends BlockchainInterface {
 
     /**
    * Create a new instance of the {ScalarDL} class.
-   * @param {string} config_path The path of the Scalar DL network configuration file.
-   * @param {string} workspace_root The absolute path to the root location for the application configuration files.
+   * @param {string} configPath The path of the Scalar DL network configuration file.
+   * @param {string} workspaceRoot The absolute path to the root location for the application configuration files.
    */
-    constructor(config_path, workspace_root) {
-        super(config_path);
+    constructor(configPath, workspaceRoot) {
+        super(configPath);
         this.statusInterval = null;
         this.bcType = 'scalardl';
-        this.workspaceRoot = workspace_root;
+        this.workspaceRoot = workspaceRoot;
     }
 
     /**

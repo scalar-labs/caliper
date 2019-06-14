@@ -18,11 +18,11 @@ class ScalarDLClientFactory {
     /**
      * Require paths to configuration data used when calling new on scalardl.js
      * @param {String} absNetworkFile absolute workerPath
-     * @param {Sting} workspace_root root location
+     * @param {Sting} workspaceRoot root location
      */
-    constructor(absNetworkFile, workspace_root){
+    constructor(absNetworkFile, workspaceRoot){
         this.absNetworkFile = absNetworkFile;
-        this.workspaceRoot = workspace_root;
+        this.workspaceRoot = workspaceRoot;
     }
 
 

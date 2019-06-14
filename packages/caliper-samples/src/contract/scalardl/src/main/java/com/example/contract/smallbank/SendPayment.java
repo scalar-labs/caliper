@@ -9,40 +9,38 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
-import com.example.contract.smallbank.Const;
-
 public class SendPayment extends Contract {
 
   @Override
   public JsonObject invoke(Ledger ledger, JsonObject argument, Optional<JsonObject> properties) {
-    String source_cId = "" + argument.getInt(Const.SRC_CID);
-    String dest_cId = "" + argument.getInt(Const.DST_CID);
-    int amount = argument.getInt(Const.AMOUNT);
+    String srcCustomerId = "" + argument.getInt(Const.KEY_SRC_CUSTOMER_ID);
+    String dstCustomerId = "" + argument.getInt(Const.KEY_DST_CUSTOMER_ID);
+    int amount = argument.getInt(Const.KEY_AMOUNT);
 
-    Optional<Asset> s_asset = ledger.get(source_cId);
-    if (!s_asset.isPresent()) {
+    Optional<Asset> srcAsset = ledger.get(srcCustomerId);
+    if (!srcAsset.isPresent()) {
       throw new ContractContextException(Const.ERR_NOT_FOUND);
     }
-    Optional<Asset> d_asset = ledger.get(dest_cId);
-    if (!d_asset.isPresent()) {
+    Optional<Asset> dstAsset = ledger.get(dstCustomerId);
+    if (!dstAsset.isPresent()) {
       throw new ContractContextException(Const.ERR_NOT_FOUND);
     }
 
-    JsonObject s_data = s_asset.get().data();
-    JsonObject d_data = d_asset.get().data();
-    int s_balance = s_data.getInt(Const.C_BALANCE);
-    int d_balance = d_data.getInt(Const.C_BALANCE);
-    s_balance -= amount;
-    d_balance += amount;
+    JsonObject srcData = srcAsset.get().data();
+    JsonObject dstData = dstAsset.get().data();
+    int srcBalance = srcData.getInt(Const.KEY_CHECKING_BALANCE);
+    int dstBalance = dstData.getInt(Const.KEY_CHECKING_BALANCE);
+    srcBalance -= amount;
+    dstBalance += amount;
 
-    JsonObjectBuilder new_s_data = Json.createObjectBuilder();
-    JsonObjectBuilder new_d_data = Json.createObjectBuilder();
-    s_data.forEach(new_s_data::add);
-    d_data.forEach(new_d_data::add);
-    new_s_data.add(Const.C_BALANCE, s_balance);
-    new_d_data.add(Const.C_BALANCE, d_balance);
-    ledger.put(source_cId, new_s_data.build());
-    ledger.put(dest_cId, new_d_data.build());
+    JsonObjectBuilder newSrcData = Json.createObjectBuilder();
+    JsonObjectBuilder newDstData = Json.createObjectBuilder();
+    srcData.forEach(newSrcData::add);
+    dstData.forEach(newDstData::add);
+    newSrcData.add(Const.KEY_CHECKING_BALANCE, srcBalance);
+    newDstData.add(Const.KEY_CHECKING_BALANCE, dstBalance);
+    ledger.put(srcCustomerId, newSrcData.build());
+    ledger.put(dstCustomerId, newDstData.build());
 
     return null;
   }
