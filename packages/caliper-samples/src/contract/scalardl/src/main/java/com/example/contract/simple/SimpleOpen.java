@@ -7,7 +7,7 @@ import java.util.Optional;
 import javax.json.Json;
 import javax.json.JsonObject;
 
-public class OpenAccount extends Contract {
+public class SimpleOpen extends Contract {
 
   @Override
   public JsonObject invoke(Ledger ledger, JsonObject argument, Optional<JsonObject> properties) {

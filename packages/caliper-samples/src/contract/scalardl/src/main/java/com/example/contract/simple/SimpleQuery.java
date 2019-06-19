@@ -7,7 +7,7 @@ import com.scalar.ledger.ledger.Ledger;
 import java.util.Optional;
 import javax.json.JsonObject;
 
-public class QueryAccount extends Contract {
+public class SimpleQuery extends Contract {
 
   @Override
   public JsonObject invoke(Ledger ledger, JsonObject argument, Optional<JsonObject> properties) {

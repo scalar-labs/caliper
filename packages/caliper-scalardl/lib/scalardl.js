@@ -47,6 +47,9 @@ function getClientProperties(config, workspaceRoot) {
 function getFunctionMap(config) {
     let fcnMap = {};
     for (const contract of config.scalardl.contracts) {
+        if (fcnMap[contract.fcn]) {
+            throw new Error(`Do not use same function name "${contract.fcn}" for multiple contracts in the config file`);
+        }
         fcnMap[contract.fcn] = contract.id;
     }
     return fcnMap;

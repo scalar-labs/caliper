@@ -21,18 +21,6 @@
     },
     "contracts": [
       {
-        "id": "OpenAccount",
-        "name": "com.example.contract.simple.OpenAccount",
-        "fcn": "open",
-        "path": "build/classes/java/main/com/example/contract/simple/OpenAccount.class"
-      },
-      {
-        "id": "QueryAccount",
-        "name": "com.example.contract.simple.QueryAccount",
-        "fcn": "query",
-        "path": "build/classes/java/main/com/example/contract/simple/QueryAccount.class"
-      },
-      {
         "id": "CreateAccount",
         "name": "com.example.contract.smallbank.CreateAccount",
         "fcn": "create_account",
@@ -69,7 +57,7 @@
         "path": "build/classes/java/main/com/example/contract/smallbank/Amalgamate.class"
       },
       {
-        "id": "SmallBankQueryAccount",
+        "id": "QueryAccount",
         "name": "com.example.contract.smallbank.QueryAccount",
         "fcn": "query",
         "path": "build/classes/java/main/com/example/contract/smallbank/QueryAccount.class"
