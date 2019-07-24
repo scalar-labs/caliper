@@ -30,8 +30,7 @@ public class WriteCheck extends Contract {
     int checkingBalance = data.getInt(Const.KEY_CHECKING_BALANCE);
     checkingBalance -= amount;
 
-    JsonObjectBuilder newData = Json.createObjectBuilder();
-    data.forEach(newData::add);
+    JsonObjectBuilder newData = Json.createObjectBuilder(data);
     newData.add(Const.KEY_CHECKING_BALANCE, checkingBalance);
     ledger.put(customerId, newData.build());
 

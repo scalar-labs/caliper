@@ -38,10 +38,8 @@ public class SimpleTransfer extends Contract {
     srcBalance -= amount;
     dstBalance += amount;
 
-    JsonObjectBuilder newSrcData = Json.createObjectBuilder();
-    JsonObjectBuilder newDstData = Json.createObjectBuilder();
-    srcData.forEach(newSrcData::add);
-    dstData.forEach(newDstData::add);
+    JsonObjectBuilder newSrcData = Json.createObjectBuilder(srcData);
+    JsonObjectBuilder newDstData = Json.createObjectBuilder(dstData);
     newSrcData.add("balance", srcBalance);
     newDstData.add("balance", dstBalance);
     ledger.put(srcAccountId, newSrcData.build());

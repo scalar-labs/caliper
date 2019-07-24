@@ -46,10 +46,8 @@ public class SendPayment extends Contract {
     srcBalance -= amount;
     dstBalance += amount;
 
-    JsonObjectBuilder newSrcData = Json.createObjectBuilder();
-    JsonObjectBuilder newDstData = Json.createObjectBuilder();
-    srcData.forEach(newSrcData::add);
-    dstData.forEach(newDstData::add);
+    JsonObjectBuilder newSrcData = Json.createObjectBuilder(srcData);
+    JsonObjectBuilder newDstData = Json.createObjectBuilder(dstData);
     newSrcData.add(Const.KEY_CHECKING_BALANCE, srcBalance);
     newDstData.add(Const.KEY_CHECKING_BALANCE, dstBalance);
     ledger.put(srcCustomerId, newSrcData.build());

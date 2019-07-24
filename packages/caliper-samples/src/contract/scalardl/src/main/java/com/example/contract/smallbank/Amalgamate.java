@@ -42,10 +42,8 @@ public class Amalgamate extends Contract {
     dstCheckingBalance += srcSavingsBalance;
     srcSavingsBalance = 0;
 
-    JsonObjectBuilder newSrcData = Json.createObjectBuilder();
-    JsonObjectBuilder newDstData = Json.createObjectBuilder();
-    srcData.forEach(newSrcData::add);
-    dstData.forEach(newDstData::add);
+    JsonObjectBuilder newSrcData = Json.createObjectBuilder(srcData);
+    JsonObjectBuilder newDstData = Json.createObjectBuilder(dstData);
     newSrcData.add(Const.KEY_SAVINGS_BALANCE, srcSavingsBalance);
     newDstData.add(Const.KEY_CHECKING_BALANCE, dstCheckingBalance);
     ledger.put(srcCustomerId, newSrcData.build());

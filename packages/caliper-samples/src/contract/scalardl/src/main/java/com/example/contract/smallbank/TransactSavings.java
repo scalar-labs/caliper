@@ -30,8 +30,7 @@ public class TransactSavings extends Contract {
     int savingsBalance = data.getInt(Const.KEY_SAVINGS_BALANCE);
     savingsBalance += amount;
 
-    JsonObjectBuilder newData = Json.createObjectBuilder();
-    data.forEach(newData::add);
+    JsonObjectBuilder newData = Json.createObjectBuilder(data);
     newData.add(Const.KEY_SAVINGS_BALANCE, savingsBalance);
     ledger.put(customerId, newData.build());
 
