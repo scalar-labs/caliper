@@ -1,13 +1,33 @@
 #!/bin/sh
 
-CONFIG=$1
-SLEEP_SEC=$2
+SLEEP_SEC=$1
 SCALAR_CONFIG_DIR=network/scalardl
 
-rm -f ${SCALAR_CONFIG_DIR}/cfssl/data/*
-docker-compose -f ${SCALAR_CONFIG_DIR}/${CONFIG} up -d
+error_exit() {
+  msg=$1
+  printf "\e[31m${msg}\e[m\n"
+  exit 1
+}
+
+echo "===> Moving from ${PWD} to ${SCALAR_CONFIG_DIR}"
+cd ${SCALAR_CONFIG_DIR}
+
+# clone (if needed) scalar-labs/scalar-samples
+if [ -d scalar-samples ]; then
+  # If scalar-samples repo already cloned and in current directory,
+  # cd scalar-samples and checkout corresponding version
+  echo "===> Checking out latest version of scalar-labs/scalar-samples"
+  cd scalar-samples && git pull
+else
+  echo "===> Cloning scalar-labs/scalar-samples repo"
+  git clone -b master https://github.com/scalar-labs/scalar-samples.git && cd scalar-samples
+fi
+
+rm -f ./cfssl/data/*
+docker volume rm -f scalar-samples_cassandra-data
+docker-compose up -d || error_exit "!!! Docker compose failed. If you do not have Scalar DL images, make sure that you have done 'docker login' in advance"
 
 echo "Waiting for starting Scalar DL servers (${SLEEP_SEC} seconds)"
 sleep ${SLEEP_SEC}
 
-docker-compose -f ${SCALAR_CONFIG_DIR}/${CONFIG} exec -T cassandra cqlsh -f /create_schema.cql
+docker-compose exec -T cassandra cqlsh -f /create_schema.cql

@@ -2,8 +2,8 @@
   "caliper" : {
     "blockchain": "scalardl",
     "command" : {
-      "start": "/bin/sh network/scalardl/scripts/up.sh docker-compose.yml 30",
-      "end" : "/bin/sh network/scalardl/scripts/down.sh docker-compose.yml"
+      "start": "/bin/sh network/scalardl/scripts/up.sh 30",
+      "end" : "/bin/sh network/scalardl/scripts/down.sh"
     }
   },
   "contract": { "path": "src/contract/scalardl" },

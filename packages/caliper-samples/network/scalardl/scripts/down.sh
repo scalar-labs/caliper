@@ -3,4 +3,7 @@
 CONFIG=$1
 SCALAR_CONFIG_DIR=network/scalardl
 
-docker-compose -f ${SCALAR_CONFIG_DIR}/${CONFIG} down
+echo "===> Moving from ${PWD} to ${SCALAR_CONFIG_DIR}/scalar-samples"
+cd ${SCALAR_CONFIG_DIR}/scalar-samples
+
+docker-compose down
