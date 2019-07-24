@@ -19,5 +19,6 @@ public class Const {
   public static final String KEY_QUERY_KEY = "query_key"; // For Scalar DL Adapter
 
   /* Error messages */
+  public static final String ERR_EXISTS = "Specified account already exists";
   public static final String ERR_NOT_FOUND = "Could not find specified account";
 }

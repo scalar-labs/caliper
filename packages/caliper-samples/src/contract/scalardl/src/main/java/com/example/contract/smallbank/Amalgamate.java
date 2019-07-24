@@ -13,6 +13,16 @@ public class Amalgamate extends Contract {
 
   @Override
   public JsonObject invoke(Ledger ledger, JsonObject argument, Optional<JsonObject> properties) {
+    if (!argument.containsKey(Const.KEY_SRC_CUSTOMER_ID)
+        || !argument.containsKey(Const.KEY_DST_CUSTOMER_ID)) {
+      throw new ContractContextException(
+          "Please set "
+              + Const.KEY_SRC_CUSTOMER_ID
+              + " and "
+              + Const.KEY_DST_CUSTOMER_ID
+              + " in the argument");
+    }
+
     String srcCustomerId = Integer.toString(argument.getInt(Const.KEY_SRC_CUSTOMER_ID));
     String dstCustomerId = Integer.toString(argument.getInt(Const.KEY_DST_CUSTOMER_ID));
 

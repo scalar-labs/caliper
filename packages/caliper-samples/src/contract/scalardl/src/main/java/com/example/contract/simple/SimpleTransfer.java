@@ -2,6 +2,7 @@ package com.example.contract.simple;
 
 import com.scalar.ledger.asset.Asset;
 import com.scalar.ledger.contract.Contract;
+import com.scalar.ledger.exception.ContractContextException;
 import com.scalar.ledger.ledger.Ledger;
 import java.util.Optional;
 import javax.json.Json;
@@ -12,6 +13,13 @@ public class SimpleTransfer extends Contract {
 
   @Override
   public JsonObject invoke(Ledger ledger, JsonObject argument, Optional<JsonObject> properties) {
+    if (!argument.containsKey("account1")
+        || !argument.containsKey("account2")
+        || !argument.containsKey("money")) {
+      throw new ContractContextException(
+          "Please set 'account1', 'account2' and 'money' in the argument");
+    }
+
     String srcAccountId = argument.getString("account1");
     String dstAccountId = argument.getString("account2");
     // open.js sends amount as number but transfer.js sends it as string...
@@ -19,6 +27,9 @@ public class SimpleTransfer extends Contract {
 
     Optional<Asset> srcAsset = ledger.get(srcAccountId);
     Optional<Asset> dstAsset = ledger.get(dstAccountId);
+    if (!srcAsset.isPresent() || !dstAsset.isPresent()) {
+      throw new ContractContextException("Specified account does not exist");
+    }
 
     JsonObject srcData = srcAsset.get().data();
     JsonObject dstData = dstAsset.get().data();

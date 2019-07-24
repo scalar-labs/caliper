@@ -3,6 +3,7 @@ package com.example.contract.simple;
 import com.scalar.ledger.asset.Asset;
 import com.scalar.ledger.asset.InternalAsset;
 import com.scalar.ledger.contract.Contract;
+import com.scalar.ledger.exception.ContractContextException;
 import com.scalar.ledger.ledger.Ledger;
 import java.util.Optional;
 import javax.json.JsonObject;
@@ -11,10 +12,20 @@ public class SimpleQuery extends Contract {
 
   @Override
   public JsonObject invoke(Ledger ledger, JsonObject argument, Optional<JsonObject> properties) {
+    if (!argument.containsKey("query_key")) {
+      throw new ContractContextException(
+          "Please set 'query_key' with the querying account in the argument");
+    }
+
     String accountId = argument.getString("query_key");
 
     Optional<Asset> asset = ledger.get(accountId);
-    InternalAsset internal = (InternalAsset) asset.get();
+    InternalAsset internal;
+    if (asset.isPresent()) {
+      internal = (InternalAsset) asset.get();
+    } else {
+      throw new ContractContextException("Specified account does not exist");
+    }
 
     return internal.data();
   }

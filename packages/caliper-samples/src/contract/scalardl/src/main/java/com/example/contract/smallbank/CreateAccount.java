@@ -2,6 +2,7 @@ package com.example.contract.smallbank;
 
 import com.scalar.ledger.asset.Asset;
 import com.scalar.ledger.contract.Contract;
+import com.scalar.ledger.exception.ContractContextException;
 import com.scalar.ledger.ledger.Ledger;
 import java.util.Optional;
 import javax.json.Json;
@@ -11,13 +12,31 @@ public class CreateAccount extends Contract {
 
   @Override
   public JsonObject invoke(Ledger ledger, JsonObject argument, Optional<JsonObject> properties) {
+    if (!argument.containsKey(Const.KEY_CUSTOMER_ID)
+        || !argument.containsKey(Const.KEY_CUSTOMER_NAME)
+        || !argument.containsKey(Const.KEY_INIT_CHK_BALANCE)
+        || !argument.containsKey(Const.KEY_INIT_SV_BALANCE)) {
+      throw new ContractContextException(
+          "Please set "
+              + Const.KEY_CUSTOMER_ID
+              + ", "
+              + Const.KEY_CUSTOMER_NAME
+              + ", "
+              + Const.KEY_INIT_CHK_BALANCE
+              + " and "
+              + Const.KEY_INIT_SV_BALANCE
+              + " in the argument");
+    }
+
     String customerId = Integer.toString(argument.getInt(Const.KEY_CUSTOMER_ID));
     String customerName = argument.getString(Const.KEY_CUSTOMER_NAME);
     int checkingBalance = argument.getInt(Const.KEY_INIT_CHK_BALANCE);
     int savingsBalance = argument.getInt(Const.KEY_INIT_SV_BALANCE);
 
     Optional<Asset> asset = ledger.get(customerId);
-    if (!asset.isPresent()) {
+    if (asset.isPresent()) {
+      throw new ContractContextException(Const.ERR_EXISTS);
+    } else {
       ledger.put(
           customerId,
           Json.createObjectBuilder()
