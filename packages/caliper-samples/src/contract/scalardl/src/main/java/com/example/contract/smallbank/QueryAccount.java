@@ -11,7 +11,7 @@ public class QueryAccount extends Contract {
 
   @Override
   public JsonObject invoke(Ledger ledger, JsonObject argument, Optional<JsonObject> properties) {
-    String customerId = "" + argument.getInt(Const.KEY_QUERY_KEY);
+    String customerId = Integer.toString(argument.getInt(Const.KEY_QUERY_KEY));
 
     Optional<Asset> asset = ledger.get(customerId);
     if (!asset.isPresent()) {

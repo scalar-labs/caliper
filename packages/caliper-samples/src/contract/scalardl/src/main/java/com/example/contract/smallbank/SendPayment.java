@@ -13,8 +13,8 @@ public class SendPayment extends Contract {
 
   @Override
   public JsonObject invoke(Ledger ledger, JsonObject argument, Optional<JsonObject> properties) {
-    String srcCustomerId = "" + argument.getInt(Const.KEY_SRC_CUSTOMER_ID);
-    String dstCustomerId = "" + argument.getInt(Const.KEY_DST_CUSTOMER_ID);
+    String srcCustomerId = Integer.toString(argument.getInt(Const.KEY_SRC_CUSTOMER_ID));
+    String dstCustomerId = Integer.toString(argument.getInt(Const.KEY_DST_CUSTOMER_ID));
     int amount = argument.getInt(Const.KEY_AMOUNT);
 
     Optional<Asset> srcAsset = ledger.get(srcCustomerId);

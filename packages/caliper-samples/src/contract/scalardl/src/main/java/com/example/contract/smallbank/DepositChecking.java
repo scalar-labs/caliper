@@ -13,7 +13,7 @@ public class DepositChecking extends Contract {
 
   @Override
   public JsonObject invoke(Ledger ledger, JsonObject argument, Optional<JsonObject> properties) {
-    String customerId = "" + argument.getInt(Const.KEY_CUSTOMER_ID);
+    String customerId = Integer.toString(argument.getInt(Const.KEY_CUSTOMER_ID));
     int amount = argument.getInt(Const.KEY_AMOUNT);
 
     Optional<Asset> asset = ledger.get(customerId);

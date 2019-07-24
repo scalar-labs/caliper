@@ -11,7 +11,7 @@ public class CreateAccount extends Contract {
 
   @Override
   public JsonObject invoke(Ledger ledger, JsonObject argument, Optional<JsonObject> properties) {
-    String customerId = "" + argument.getInt(Const.KEY_CUSTOMER_ID);
+    String customerId = Integer.toString(argument.getInt(Const.KEY_CUSTOMER_ID));
     String customerName = argument.getString(Const.KEY_CUSTOMER_NAME);
     int checkingBalance = argument.getInt(Const.KEY_INIT_CHK_BALANCE);
     int savingsBalance = argument.getInt(Const.KEY_INIT_SV_BALANCE);
