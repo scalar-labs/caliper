@@ -6,4 +6,4 @@ SCALAR_CONFIG_DIR=network/scalardl
 echo "===> Moving from ${PWD} to ${SCALAR_CONFIG_DIR}/scalar-samples"
 cd ${SCALAR_CONFIG_DIR}/scalar-samples
 
-docker-compose down
+docker-compose -p caliper-scalar-samples down

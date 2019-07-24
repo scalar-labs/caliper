@@ -24,10 +24,9 @@ else
 fi
 
 rm -f ./cfssl/data/*
-docker volume rm -f scalar-samples_cassandra-data
-docker-compose up -d || error_exit "!!! Docker compose failed. If you do not have Scalar DL images, make sure that you have done 'docker login' in advance"
+yes | docker-compose -p caliper-scalar-samples up -d || error_exit "!!! Docker compose failed. If you do not have Scalar DL images, make sure that you have done 'docker login' in advance"
 
 echo "Waiting for starting Scalar DL servers (${SLEEP_SEC} seconds)"
 sleep ${SLEEP_SEC}
 
-docker-compose exec -T cassandra cqlsh -f /create_schema.cql
+docker-compose -p caliper-scalar-samples exec -T cassandra cqlsh -f /create_schema.cql
