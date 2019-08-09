@@ -22,8 +22,8 @@ public class SimpleTransfer extends Contract {
 
     String srcAccountId = argument.getString("account1");
     String dstAccountId = argument.getString("account2");
-    // open.js sends amount as number but transfer.js sends it as string...
-    int amount = Integer.parseInt(argument.getString("money"));
+    // open.js sends money as number but transfer.js sends it as string...
+    int money = Integer.parseInt(argument.getString("money"));
 
     Optional<Asset> srcAsset = ledger.get(srcAccountId);
     Optional<Asset> dstAsset = ledger.get(dstAccountId);
@@ -35,8 +35,8 @@ public class SimpleTransfer extends Contract {
     JsonObject dstData = dstAsset.get().data();
     int srcBalance = srcData.getInt("balance");
     int dstBalance = dstData.getInt("balance");
-    srcBalance -= amount;
-    dstBalance += amount;
+    srcBalance -= money;
+    dstBalance += money;
 
     JsonObjectBuilder newSrcData = Json.createObjectBuilder(srcData);
     JsonObjectBuilder newDstData = Json.createObjectBuilder(dstData);
