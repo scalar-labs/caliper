@@ -17,15 +17,15 @@ mutual-tls: false
 caliper:
   blockchain: fabric-ccp
   command:
-    start: docker-compose -f network/fabric-v1.4.1/2org1peercouchdb/docker-compose.yaml up -d;sleep 3s
-    end: docker-compose -f network/fabric-v1.4.1/2org1peercouchdb/docker-compose.yaml down;(test -z \"$(docker ps -aq)\") || docker rm $(docker ps -aq);(test -z \"$(docker images dev* -q)\") || docker rmi $(docker images dev* -q);rm -rf /tmp/hfc-*
+    start: docker network create --attachable --driver overlay caliper-nw; docker stack deploy caliper -c network/fabric-v1.4.1/swarm3org1peercouchdb/docker-compose.yaml; sleep 5s
+    end: docker stack rm caliper; sleep 10s; docker network rm caliper-nw; rm -rf /tmp/hfc-*
 
 info:
-  Version: 1.4.0
-  Size: 2 Orgs with 1 Peer
-  Orderer: Solo
-  Distribution: Single Host
-  StateDB: CouchDB
+  Version: 1.4.1
+  Size: 3 Orgs with 1 Peer
+  Orderer: Solo,
+  Distribution: Single Host with Swarm Mode
+  StateDB: GoLevelDB
 
 clients:
   client0.org1.example.com:
@@ -36,9 +36,9 @@ clients:
         cryptoStore:
           path: /tmp/hfc-cvs/org1
       clientPrivateKey:
-        path: network/fabric-v1.4.1/config/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp/keystore/key.pem
+        path: network/fabric-v1.4.1/config-swarm/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp/keystore/key.pem
       clientSignedCert:
-        path: network/fabric-v1.4.1/config/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp/signcerts/User1@org1.example.com-cert.pem
+        path: network/fabric-v1.4.1/config-swarm/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp/signcerts/User1@org1.example.com-cert.pem
 
   client0.org2.example.com:
     client:
@@ -48,14 +48,25 @@ clients:
         cryptoStore:
           path: /tmp/hfc-cvs/org2
       clientPrivateKey:
-        path: network/fabric-v1.4.1/config/crypto-config/peerOrganizations/org2.example.com/users/User1@org2.example.com/msp/keystore/key.pem
+        path: network/fabric-v1.4.1/config-swarm/crypto-config/peerOrganizations/org2.example.com/users/User1@org2.example.com/msp/keystore/key.pem
       clientSignedCert:
-        path: network/fabric-v1.4.1/config/crypto-config/peerOrganizations/org2.example.com/users/User1@org2.example.com/msp/signcerts/User1@org2.example.com-cert.pem
+        path: network/fabric-v1.4.1/config-swarm/crypto-config/peerOrganizations/org2.example.com/users/User1@org2.example.com/msp/signcerts/User1@org2.example.com-cert.pem
 
+  client0.org3.example.com:
+    client:
+      organization: Org3
+      credentialStore:
+        path: /tmp/hfc-kvs/org3
+        cryptoStore:
+          path: /tmp/hfc-cvs/org3
+      clientPrivateKey:
+        path: network/fabric-v1.4.1/config-swarm/crypto-config/peerOrganizations/org3.example.com/users/User1@org3.example.com/msp/keystore/key.pem
+      clientSignedCert:
+        path: network/fabric-v1.4.1/config-swarm/crypto-config/peerOrganizations/org3.example.com/users/User1@org3.example.com/msp/signcerts/User1@org3.example.com-cert.pem
 
 channels:
   mychannel:
-    configBinary: network/fabric-v1.4.1/config/mychannel.tx
+    configBinary: network/fabric-v1.4.1/config-swarm/mychannel.tx
     created: false
     orderers:
     - orderer.example.com
@@ -63,6 +74,8 @@ channels:
       peer0.org1.example.com:
         eventSource: true
       peer0.org2.example.com:
+        eventSource: true
+      peer0.org3.example.com:
         eventSource: true
 
     chaincodes:
@@ -84,6 +97,7 @@ channels:
       language: golang
       path: contract/fabric/smallbank
 
+
 organizations:
   Org1:
     mspid: Org1MSP
@@ -92,9 +106,9 @@ organizations:
     certificateAuthorities:
     - ca.org1.example.com
     adminPrivateKey:
-      path: network/fabric-v1.4.1/config/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/key.pem
+      path: network/fabric-v1.4.1/config-swarm/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/key.pem
     signedCert:
-      path: network/fabric-v1.4.1/config/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem
+      path: network/fabric-v1.4.1/config-swarm/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem
 
   Org2:
     mspid: Org2MSP
@@ -103,9 +117,20 @@ organizations:
     certificateAuthorities:
     - ca.org2.example.com
     adminPrivateKey:
-      path: network/fabric-v1.4.1/config/crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/keystore/key.pem
+      path: network/fabric-v1.4.1/config-swarm/crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/keystore/key.pem
     signedCert:
-      path: network/fabric-v1.4.1/config/crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/signcerts/Admin@org2.example.com-cert.pem
+      path: network/fabric-v1.4.1/config-swarm/crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/signcerts/Admin@org2.example.com-cert.pem
+
+  Org3:
+    mspid: Org3MSP
+    peers:
+    - peer0.org3.example.com
+    certificateAuthorities:
+    - ca.org3.example.com
+    adminPrivateKey:
+      path: network/fabric-v1.4.1/config-swarm/crypto-config/peerOrganizations/org3.example.com/users/Admin@org3.example.com/msp/keystore/key.pem
+    signedCert:
+      path: network/fabric-v1.4.1/config-swarm/crypto-config/peerOrganizations/org3.example.com/users/Admin@org3.example.com/msp/signcerts/Admin@org3.example.com-cert.pem
 
 orderers:
   orderer.example.com:
@@ -126,6 +151,12 @@ peers:
       ssl-target-name-override: peer0.org2.example.com
       grpc.keepalive_time_ms: 600000
 
+  peer0.org3.example.com:
+    url: grpc://localhost:9051
+    grpcOptions:
+      ssl-target-name-override: peer0.org3.example.com
+      grpc.keepalive_time_ms: 600000
+
 certificateAuthorities:
   ca.org1.example.com:
     url: http://localhost:7054
@@ -137,6 +168,14 @@ certificateAuthorities:
 
   ca.org2.example.com:
     url: http://localhost:8054
+    httpOptions:
+      verify: false
+    registrar:
+    - enrollId: admin
+      enrollSecret: adminpw
+
+  ca.org3.example.com:
+    url: http://localhost:9054
     httpOptions:
       verify: false
     registrar:

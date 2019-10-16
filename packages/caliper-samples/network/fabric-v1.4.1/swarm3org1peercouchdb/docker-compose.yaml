@@ -1,7 +1,11 @@
-version: '2'
+version: '3'
+
+networks:
+  caliper-nw:
+    external: true
 
 services:
-  ca.org1.example.com:
+  ca-org1:
     image: hyperledger/fabric-ca:1.4.1
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
@@ -10,10 +14,16 @@ services:
       - "7054:7054"
     command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.org1.example.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/key.pem -b admin:adminpw -d'
     volumes:
-      - ../config/crypto-config/peerOrganizations/org1.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
-    container_name: ca.org1.example.com
+      - ../config-swarm/crypto-config/peerOrganizations/org1.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
 
-  ca.org2.example.com:
+  ca-org2:
     image: hyperledger/fabric-ca:1.4.1
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
@@ -22,11 +32,34 @@ services:
       - "8054:7054"
     command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.org2.example.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/key.pem -b admin:adminpw -d'
     volumes:
-      - ../config/crypto-config/peerOrganizations/org2.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
-    container_name: ca.org2.example.com
+      - ../config-swarm/crypto-config/peerOrganizations/org2.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
 
-  orderer.example.com:
-    container_name: orderer.example.com
+  ca-org3:
+    image: hyperledger/fabric-ca:1.4.1
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca.org3.example.com
+    ports:
+      - "9054:7054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.org3.example.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/key.pem -b admin:adminpw -d'
+    volumes:
+      - ../config-swarm/crypto-config/peerOrganizations/org3.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  orderer:
     image: hyperledger/fabric-orderer:1.4.1
     environment:
       - ORDERER_GENERAL_LOGLEVEL=debug
@@ -40,11 +73,17 @@ services:
     ports:
       - 7050:7050
     volumes:
-        - ../config/:/etc/hyperledger/configtx
-        - ../config/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/etc/hyperledger/msp/orderer/msp
+        - ../config-swarm/:/etc/hyperledger/configtx
+        - ../config-swarm/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/etc/hyperledger/msp/orderer/msp
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
 
-  peer0.org1.example.com:
-    container_name: peer0.org1.example.com
+  peer0-org1:
     image: hyperledger/fabric-peer:1.4.1
     environment:
       - CORE_LOGGING_PEER=debug
@@ -52,15 +91,14 @@ services:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - CORE_PEER_ID=peer0.org1.example.com
       - CORE_PEER_ENDORSER_ENABLED=true
-      - CORE_PEER_ADDRESS=peer0.org1.example.com:7051
-      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=2org1peercouchdb_default
+      - CORE_PEER_ADDRESS=peer0-org1:7051
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=caliper-nw
       - CORE_PEER_LOCALMSPID=Org1MSP
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/peer/msp
       - CORE_PEER_GOSSIP_USELEADERELECTION=true
       - CORE_PEER_GOSSIP_ORGLEADER=false
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org1.example.com:7051
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.org1.example.com:5984
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0-org1:7051
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric
     command: peer node start
     ports:
@@ -68,23 +106,20 @@ services:
       - 7053:7053
     volumes:
         - /var/run/:/host/var/run/
-        - ../config/mychannel.tx:/etc/hyperledger/configtx/mychannel.tx
-        - ../config/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp:/etc/hyperledger/peer/msp
-        - ../config/crypto-config/peerOrganizations/org1.example.com/users:/etc/hyperledger/msp/users
+        - ../config-swarm/mychannel.tx:/etc/hyperledger/configtx/mychannel.tx
+        - ../config-swarm/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp:/etc/hyperledger/peer/msp
+        - ../config-swarm/crypto-config/peerOrganizations/org1.example.com/users:/etc/hyperledger/msp/users
     depends_on:
-      - orderer.example.com
-      - couchdb.org1.example.com
+      - orderer
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
 
-  couchdb.org1.example.com:
-    container_name: couchdb.org1.example.com
-    image: hyperledger/fabric-couchdb:latest
-    ports:
-      - 5984:5984
-    environment:
-      DB_URL: http://localhost:5984/member_db
-
-  peer0.org2.example.com:
-    container_name: peer0.org2.example.com
+  peer0-org2:
     image: hyperledger/fabric-peer:1.4.1
     environment:
       - CORE_LOGGING_PEER=debug
@@ -92,15 +127,14 @@ services:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - CORE_PEER_ID=peer0.org2.example.com
       - CORE_PEER_ENDORSER_ENABLED=true
-      - CORE_PEER_ADDRESS=peer0.org2.example.com:7051
-      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=2org1peercouchdb_default
+      - CORE_PEER_ADDRESS=peer0-org2:7051
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=caliper-nw
       - CORE_PEER_LOCALMSPID=Org2MSP
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/peer/msp
       - CORE_PEER_GOSSIP_USELEADERELECTION=true
       - CORE_PEER_GOSSIP_ORGLEADER=false
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org2.example.com:7051
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.org2.example.com:5984
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0-org2:7051
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric
     command: peer node start
     ports:
@@ -108,18 +142,50 @@ services:
       - 8053:7053
     volumes:
         - /var/run/:/host/var/run/
-        - ../config/crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/msp:/etc/hyperledger/peer/msp
-        - ../config/crypto-config/peerOrganizations/org2.example.com/users:/etc/hyperledger/msp/users
+        - ../config-swarm/crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/msp:/etc/hyperledger/peer/msp
+        - ../config-swarm/crypto-config/peerOrganizations/org2.example.com/users:/etc/hyperledger/msp/users
     depends_on:
-      - orderer.example.com
-      - couchdb.org2.example.com
+      - orderer
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
 
-  couchdb.org2.example.com:
-    container_name: couchdb.org2.example.com
-    image: hyperledger/fabric-couchdb:latest
-    ports:
-      - 6984:5984
+  peer0-org3:
+    image: hyperledger/fabric-peer:1.4.1
     environment:
-      DB_URL: http://localhost:5984/member_db
-
-
+      - CORE_LOGGING_PEER=debug
+      - CORE_CHAINCODE_LOGGING_LEVEL=DEBUG
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_PEER_ID=peer0.org3.example.com
+      - CORE_PEER_ENDORSER_ENABLED=true
+      - CORE_PEER_ADDRESS=peer0-org3:7051
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=caliper-nw
+      - CORE_PEER_LOCALMSPID=Org3MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/peer/msp
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0-org3:7051
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: peer node start
+    ports:
+      - 9051:7051
+      - 9053:7053
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../config-swarm/mychannel.tx:/etc/hyperledger/configtx/mychannel.tx
+        - ../config-swarm/crypto-config/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/msp:/etc/hyperledger/peer/msp
+        - ../config-swarm/crypto-config/peerOrganizations/org3.example.com/users:/etc/hyperledger/msp/users
+    depends_on:
+      - orderer
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
