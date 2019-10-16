@@ -59,7 +59,7 @@ services:
         constraints:
           - node.hostname==docker-desktop
 
-  orderer:
+  orderer1:
     image: hyperledger/fabric-orderer:1.4.1
     environment:
       - ORDERER_GENERAL_LOGLEVEL=debug
@@ -75,6 +75,66 @@ services:
     volumes:
         - ../config-swarm/:/etc/hyperledger/configtx
         - ../config-swarm/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/etc/hyperledger/msp/orderer/msp
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  orderer2:
+    image: hyperledger/fabric-orderer:1.4.1
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=debug
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/orgs.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/msp/orderer/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    ports:
+      - 8050:7050
+    volumes:
+        - ../config-swarm/:/etc/hyperledger/configtx
+        - ../config-swarm/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/etc/hyperledger/msp/orderer/msp
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  orderer3:
+    image: hyperledger/fabric-orderer:1.4.1
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=debug
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/orgs.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/msp/orderer/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    ports:
+      - 9050:7050
+    volumes:
+        - ../config-swarm/:/etc/hyperledger/configtx
+        - ../config-swarm/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/etc/hyperledger/msp/orderer/msp
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
     networks:
       - caliper-nw
     deploy:
@@ -227,6 +287,122 @@ services:
     image: hyperledger/fabric-couchdb:latest
     environment:
       DB_URL: http://localhost:5984/member_db
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  zookeeper1:
+    image: hyperledger/fabric-zookeeper:latest
+    volumes:
+        - /tmp:/tmp
+    environment:
+      - ZOO_MY_ID=1
+      - ZOO_SERVERS=server.1=0.0.0.0:2888:3888 server.2=zookeeper2:2888:3888 server.3=zookeeper3:2888:3888
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  zookeeper2:
+    image: hyperledger/fabric-zookeeper:latest
+    environment:
+      - ZOO_MY_ID=2
+      - ZOO_SERVERS=server.1=zookeeper1:2888:3888 server.2=0.0.0.0:2888:3888 server.3=zookeeper3:2888:3888
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  zookeeper3:
+    image: hyperledger/fabric-zookeeper:latest
+    environment:
+      - ZOO_MY_ID=3
+      - ZOO_SERVERS=server.1=zookeeper1:2888:3888 server.2=zookeeper2:2888:3888 server.3=0.0.0.0:2888:3888
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  kafka1:
+    image: hyperledger/fabric-kafka:latest
+    depends_on:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper1:2181,zookeeper2:2181,zookeeper3:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka1:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_MESSAGE_MAX_BYTES=1048576 # 1 * 1024 * 1024 B
+      - KAFKA_REPLICA_FETCH_MAX_BYTES=1048576 # 1 * 1024 * 1024 B
+      - KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE=false
+      - KAFKA_LOG_RETENTION_MS=-1
+      - KAFKA_MIN_INSYNC_REPLICAS=2
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=3
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  kafka2:
+    image: hyperledger/fabric-kafka:latest
+    depends_on:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+    environment:
+      - KAFKA_BROKER_ID=2
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper1:2181,zookeeper2:2181,zookeeper3:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka2:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_MESSAGE_MAX_BYTES=1048576 # 1 * 1024 * 1024 B
+      - KAFKA_REPLICA_FETCH_MAX_BYTES=1048576 # 1 * 1024 * 1024 B
+      - KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE=false
+      - KAFKA_LOG_RETENTION_MS=-1
+      - KAFKA_MIN_INSYNC_REPLICAS=2
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=3
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  kafka3:
+    image: hyperledger/fabric-kafka:latest
+    depends_on:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+    environment:
+      - KAFKA_BROKER_ID=3
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper1:2181,zookeeper2:2181,zookeeper3:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka3:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_MESSAGE_MAX_BYTES=1048576 # 1 * 1024 * 1024 B
+      - KAFKA_REPLICA_FETCH_MAX_BYTES=1048576 # 1 * 1024 * 1024 B
+      - KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE=false
+      - KAFKA_LOG_RETENTION_MS=-1
+      - KAFKA_MIN_INSYNC_REPLICAS=2
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=3
     networks:
       - caliper-nw
     deploy:

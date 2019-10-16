@@ -74,15 +74,48 @@ Orderer: &OrdererDefaults
 
     Organizations:
 
+Orderer: &OrdererKafka
+    OrdererType: kafka
+    Addresses:
+        - orderer1:7050
+        - orderer2:7050
+        - orderer3:7050
+    BatchTimeout: 250ms
+    BatchSize:
+        MaxMessageCount: 10
+        AbsoluteMaxBytes: 128 MB
+        PreferredMaxBytes: 128 MB
+
+    MaxChannels: 0
+
+    Kafka:
+        Brokers:
+            - kafka1:9092
+            - kafka2:9092
+            - kafka3:9092
+
+    Organizations:
+
 Application: &ApplicationDefaults
     Organizations:
 
 
 Profiles:
 
-    OrgsOrdererGenesis:
+    OrgsSoloOrdererGenesis:
         Orderer:
             <<: *OrdererDefaults
+            Organizations:
+            - *OrdererOrg
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                - *Org0
+                - *Org1
+                - *Org2
+    OrgsKafkaOrdererGenesis:
+        Orderer:
+            <<: *OrdererKafka
             Organizations:
             - *OrdererOrg
         Consortiums:

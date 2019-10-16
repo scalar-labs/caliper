@@ -10,7 +10,7 @@ rm -f ./orgs.genesis.block
 rm -f ./mychannel.tx
 
 ./bin/cryptogen generate --config=./crypto-config.yaml
-./bin/configtxgen -profile OrgsOrdererGenesis -outputBlock orgs.genesis.block -channelID syschannel
+./bin/configtxgen -profile OrgsKafkaOrdererGenesis -outputBlock orgs.genesis.block -channelID syschannel
 ./bin/configtxgen -profile OrgsChannel -outputCreateChannelTx mychannel.tx -channelID mychannel
 
 # Rename the key files we use to be key.pem instead of a uuid
