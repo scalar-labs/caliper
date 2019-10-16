@@ -25,7 +25,7 @@ info:
   Size: 3 Orgs with 1 Peer
   Orderer: Solo,
   Distribution: Single Host with Swarm Mode
-  StateDB: GoLevelDB
+  StateDB: CouchDB
 
 clients:
   client0.org1.example.com:

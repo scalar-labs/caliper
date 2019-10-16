@@ -99,6 +99,8 @@ services:
       - CORE_PEER_GOSSIP_USELEADERELECTION=true
       - CORE_PEER_GOSSIP_ORGLEADER=false
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0-org1:7051
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb-peer0-org1:5984
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric
     command: peer node start
     ports:
@@ -111,6 +113,7 @@ services:
         - ../config-swarm/crypto-config/peerOrganizations/org1.example.com/users:/etc/hyperledger/msp/users
     depends_on:
       - orderer
+      - couchdb-peer0-org1
     networks:
       - caliper-nw
     deploy:
@@ -135,6 +138,8 @@ services:
       - CORE_PEER_GOSSIP_USELEADERELECTION=true
       - CORE_PEER_GOSSIP_ORGLEADER=false
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0-org2:7051
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb-peer0-org2:5984
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric
     command: peer node start
     ports:
@@ -146,6 +151,7 @@ services:
         - ../config-swarm/crypto-config/peerOrganizations/org2.example.com/users:/etc/hyperledger/msp/users
     depends_on:
       - orderer
+      - couchdb-peer0-org2
     networks:
       - caliper-nw
     deploy:
@@ -170,6 +176,8 @@ services:
       - CORE_PEER_GOSSIP_USELEADERELECTION=true
       - CORE_PEER_GOSSIP_ORGLEADER=false
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0-org3:7051
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb-peer0-org3:5984
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric
     command: peer node start
     ports:
@@ -182,6 +190,49 @@ services:
         - ../config-swarm/crypto-config/peerOrganizations/org3.example.com/users:/etc/hyperledger/msp/users
     depends_on:
       - orderer
+      - couchdb-peer0-org3
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  couchdb-peer0-org1:
+    image: hyperledger/fabric-couchdb:latest
+    ports:
+      - 5984:5984
+    environment:
+      DB_URL: http://localhost:5984/member_db
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  couchdb-peer0-org2:
+    image: hyperledger/fabric-couchdb:latest
+    ports:
+      - 6984:5984
+    environment:
+      DB_URL: http://localhost:5984/member_db
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  couchdb-peer0-org3:
+    image: hyperledger/fabric-couchdb:latest
+    ports:
+      - 7984:5984
+    environment:
+      DB_URL: http://localhost:5984/member_db
     networks:
       - caliper-nw
     deploy:
