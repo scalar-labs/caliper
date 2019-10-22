@@ -172,7 +172,9 @@ services:
         - ../config-swarm/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp:/etc/hyperledger/peer/msp
         - ../config-swarm/crypto-config/peerOrganizations/org1.example.com/users:/etc/hyperledger/msp/users
     depends_on:
-      - orderer
+      - orderer1
+      - orderer2
+      - orderer3
       - couchdb-peer0-org1
     networks:
       - caliper-nw
@@ -210,7 +212,9 @@ services:
         - ../config-swarm/crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/msp:/etc/hyperledger/peer/msp
         - ../config-swarm/crypto-config/peerOrganizations/org2.example.com/users:/etc/hyperledger/msp/users
     depends_on:
-      - orderer
+      - orderer1
+      - orderer2
+      - orderer3
       - couchdb-peer0-org2
     networks:
       - caliper-nw
@@ -249,7 +253,9 @@ services:
         - ../config-swarm/crypto-config/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/msp:/etc/hyperledger/peer/msp
         - ../config-swarm/crypto-config/peerOrganizations/org3.example.com/users:/etc/hyperledger/msp/users
     depends_on:
-      - orderer
+      - orderer1
+      - orderer2
+      - orderer3
       - couchdb-peer0-org3
     networks:
       - caliper-nw
