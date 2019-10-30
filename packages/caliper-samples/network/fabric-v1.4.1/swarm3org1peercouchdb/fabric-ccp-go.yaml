@@ -23,7 +23,7 @@ caliper:
 info:
   Version: 1.4.1
   Size: 3 Orgs with 1 Peer
-  Orderer: Kafka,
+  Orderer: Kafka
   Distribution: Single Host with Swarm Mode
   StateDB: CouchDB
 
