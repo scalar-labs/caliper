@@ -28,4 +28,5 @@ The following network configuration file is available, containing the listed cha
 The network is configured in __docker swarm mode__. Do the following steps before starting.
 
 1. Setup swarm mode using commands such as `docker swarm init` and `docker swarm join`.
-2. Change the placement policy in `docker-compose.yaml` file. For example, specify the hostname in your environment for `node.hostname` in the `constraints` entry.
+2. Copy `config-swarm` directory to `/tmp` of all the nodes in the network.
+3. Change the placement policy in `docker-compose.yaml` file. For example, specify the hostname in your environment for `node.hostname` in the `constraints` entry.
