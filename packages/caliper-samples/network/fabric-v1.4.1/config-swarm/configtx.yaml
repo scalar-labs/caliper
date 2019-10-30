@@ -93,6 +93,7 @@ Orderer: &OrdererKafka
             - kafka1:9092
             - kafka2:9092
             - kafka3:9092
+            - kafka4:9092
 
     Organizations:
 
