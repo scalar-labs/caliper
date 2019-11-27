@@ -1,0 +1,444 @@
+version: '3'
+
+networks:
+  caliper-nw:
+    external: true
+
+services:
+  ca-org1:
+    image: hyperledger/fabric-ca:1.4.1
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca.org1.example.com
+    ports:
+      - 7054:7054
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.org1.example.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/key.pem -b admin:adminpw -d'
+    volumes:
+      - /tmp/config-swarm/crypto-config/peerOrganizations/org1.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  ca-org2:
+    image: hyperledger/fabric-ca:1.4.1
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca.org2.example.com
+    ports:
+      - 8054:7054
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.org2.example.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/key.pem -b admin:adminpw -d'
+    volumes:
+      - /tmp/config-swarm/crypto-config/peerOrganizations/org2.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  ca-org3:
+    image: hyperledger/fabric-ca:1.4.1
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca.org3.example.com
+    ports:
+      - 9054:7054
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.org3.example.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/key.pem -b admin:adminpw -d'
+    volumes:
+      - /tmp/config-swarm/crypto-config/peerOrganizations/org3.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  orderer1:
+    image: hyperledger/fabric-orderer:1.4.1
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=debug
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/orgs.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/msp/orderer/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    ports:
+      - 7050:7050
+    volumes:
+        - /tmp/config-swarm/:/etc/hyperledger/configtx
+        - /tmp/config-swarm/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/etc/hyperledger/msp/orderer/msp
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+      - kafka4
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  orderer2:
+    image: hyperledger/fabric-orderer:1.4.1
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=debug
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/orgs.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/msp/orderer/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    ports:
+      - 8050:7050
+    volumes:
+        - /tmp/config-swarm/:/etc/hyperledger/configtx
+        - /tmp/config-swarm/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/etc/hyperledger/msp/orderer/msp
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+      - kafka4
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  orderer3:
+    image: hyperledger/fabric-orderer:1.4.1
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=debug
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/orgs.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/msp/orderer/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    ports:
+      - 9050:7050
+    volumes:
+        - /tmp/config-swarm/:/etc/hyperledger/configtx
+        - /tmp/config-swarm/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/etc/hyperledger/msp/orderer/msp
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+      - kafka4
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  peer0-org1:
+    image: hyperledger/fabric-peer:1.4.1
+    environment:
+      - CORE_LOGGING_PEER=debug
+      - CORE_CHAINCODE_LOGGING_LEVEL=DEBUG
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_PEER_ID=peer0.org1.example.com
+      - CORE_PEER_ENDORSER_ENABLED=true
+      - CORE_PEER_ADDRESS=peer0-org1:7051
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=caliper-nw
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/peer/msp
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0-org1:7051
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb-peer0-org1:5984
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: peer node start
+    ports:
+      - 7051:7051
+      - 7053:7053
+    volumes:
+        - /var/run/:/host/var/run/
+        - /tmp/config-swarm/mychannel.tx:/etc/hyperledger/configtx/mychannel.tx
+        - /tmp/config-swarm/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp:/etc/hyperledger/peer/msp
+        - /tmp/config-swarm/crypto-config/peerOrganizations/org1.example.com/users:/etc/hyperledger/msp/users
+    depends_on:
+      - orderer1
+      - orderer2
+      - orderer3
+      - couchdb-peer0-org1
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  peer0-org2:
+    image: hyperledger/fabric-peer:1.4.1
+    environment:
+      - CORE_LOGGING_PEER=debug
+      - CORE_CHAINCODE_LOGGING_LEVEL=DEBUG
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_PEER_ID=peer0.org2.example.com
+      - CORE_PEER_ENDORSER_ENABLED=true
+      - CORE_PEER_ADDRESS=peer0-org2:7051
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=caliper-nw
+      - CORE_PEER_LOCALMSPID=Org2MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/peer/msp
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0-org2:7051
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb-peer0-org2:5984
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: peer node start
+    ports:
+      - 8051:7051
+      - 8053:7053
+    volumes:
+        - /var/run/:/host/var/run/
+        - /tmp/config-swarm/crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/msp:/etc/hyperledger/peer/msp
+        - /tmp/config-swarm/crypto-config/peerOrganizations/org2.example.com/users:/etc/hyperledger/msp/users
+    depends_on:
+      - orderer1
+      - orderer2
+      - orderer3
+      - couchdb-peer0-org2
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  peer0-org3:
+    image: hyperledger/fabric-peer:1.4.1
+    environment:
+      - CORE_LOGGING_PEER=debug
+      - CORE_CHAINCODE_LOGGING_LEVEL=DEBUG
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_PEER_ID=peer0.org3.example.com
+      - CORE_PEER_ENDORSER_ENABLED=true
+      - CORE_PEER_ADDRESS=peer0-org3:7051
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=caliper-nw
+      - CORE_PEER_LOCALMSPID=Org3MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/peer/msp
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0-org3:7051
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb-peer0-org3:5984
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: peer node start
+    ports:
+      - 9051:7051
+      - 9053:7053
+    volumes:
+        - /var/run/:/host/var/run/
+        - /tmp/config-swarm/mychannel.tx:/etc/hyperledger/configtx/mychannel.tx
+        - /tmp/config-swarm/crypto-config/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/msp:/etc/hyperledger/peer/msp
+        - /tmp/config-swarm/crypto-config/peerOrganizations/org3.example.com/users:/etc/hyperledger/msp/users
+    depends_on:
+      - orderer1
+      - orderer2
+      - orderer3
+      - couchdb-peer0-org3
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  couchdb-peer0-org1:
+    image: hyperledger/fabric-couchdb:latest
+    environment:
+      DB_URL: http://localhost:5984/member_db
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  couchdb-peer0-org2:
+    image: hyperledger/fabric-couchdb:latest
+    environment:
+      DB_URL: http://localhost:5984/member_db
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  couchdb-peer0-org3:
+    image: hyperledger/fabric-couchdb:latest
+    environment:
+      DB_URL: http://localhost:5984/member_db
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  zookeeper1:
+    image: hyperledger/fabric-zookeeper:latest
+    environment:
+      - ZOO_MY_ID=1
+      - ZOO_SERVERS=server.1=0.0.0.0:2888:3888 server.2=zookeeper2:2888:3888 server.3=zookeeper3:2888:3888
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  zookeeper2:
+    image: hyperledger/fabric-zookeeper:latest
+    environment:
+      - ZOO_MY_ID=2
+      - ZOO_SERVERS=server.1=zookeeper1:2888:3888 server.2=0.0.0.0:2888:3888 server.3=zookeeper3:2888:3888
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  zookeeper3:
+    image: hyperledger/fabric-zookeeper:latest
+    environment:
+      - ZOO_MY_ID=3
+      - ZOO_SERVERS=server.1=zookeeper1:2888:3888 server.2=zookeeper2:2888:3888 server.3=0.0.0.0:2888:3888
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  kafka1:
+    image: hyperledger/fabric-kafka:latest
+    depends_on:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper1:2181,zookeeper2:2181,zookeeper3:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka1:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_MESSAGE_MAX_BYTES=1048576 # 1 * 1024 * 1024 B
+      - KAFKA_REPLICA_FETCH_MAX_BYTES=1048576 # 1 * 1024 * 1024 B
+      - KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE=false
+      - KAFKA_LOG_RETENTION_MS=-1
+      - KAFKA_MIN_INSYNC_REPLICAS=2
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=3
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  kafka2:
+    image: hyperledger/fabric-kafka:latest
+    depends_on:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+    environment:
+      - KAFKA_BROKER_ID=2
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper1:2181,zookeeper2:2181,zookeeper3:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka2:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_MESSAGE_MAX_BYTES=1048576 # 1 * 1024 * 1024 B
+      - KAFKA_REPLICA_FETCH_MAX_BYTES=1048576 # 1 * 1024 * 1024 B
+      - KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE=false
+      - KAFKA_LOG_RETENTION_MS=-1
+      - KAFKA_MIN_INSYNC_REPLICAS=2
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=3
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  kafka3:
+    image: hyperledger/fabric-kafka:latest
+    depends_on:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+    environment:
+      - KAFKA_BROKER_ID=3
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper1:2181,zookeeper2:2181,zookeeper3:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka3:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_MESSAGE_MAX_BYTES=1048576 # 1 * 1024 * 1024 B
+      - KAFKA_REPLICA_FETCH_MAX_BYTES=1048576 # 1 * 1024 * 1024 B
+      - KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE=false
+      - KAFKA_LOG_RETENTION_MS=-1
+      - KAFKA_MIN_INSYNC_REPLICAS=2
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=3
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
+
+  kafka4:
+    image: hyperledger/fabric-kafka:latest
+    depends_on:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+    environment:
+      - KAFKA_BROKER_ID=4
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper1:2181,zookeeper2:2181,zookeeper3:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka4:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_MESSAGE_MAX_BYTES=1048576 # 1 * 1024 * 1024 B
+      - KAFKA_REPLICA_FETCH_MAX_BYTES=1048576 # 1 * 1024 * 1024 B
+      - KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE=false
+      - KAFKA_LOG_RETENTION_MS=-1
+      - KAFKA_MIN_INSYNC_REPLICAS=2
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=3
+    networks:
+      - caliper-nw
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==docker-desktop
