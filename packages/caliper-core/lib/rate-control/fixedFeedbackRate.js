@@ -1,16 +1,16 @@
 /*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 'use strict';
 
@@ -48,7 +48,7 @@ class FixedFeedbackRateController extends RateInterface{
      * @param {number} msg.txDuration The length of the round in SECONDS.
      * @param {number} msg.totalClients The number of clients executing the round.
      * @param {number} msg.clients The number of clients executing the round.
-     * @param {object} msg.clientargs Arguments for the client.
+     * @param {object} msg.clientArgs Arguments for the client.
      * @param {number} msg.clientIdx The 0-based index of the current client.
      * @param {number} msg.roundIdx The 1-based index of the current round.
      *
@@ -96,7 +96,7 @@ class FixedFeedbackRateController extends RateInterface{
             return;
         }
         // Determines the sleep time for waiting until
-        // successful transactions occure.
+        // successful transactions occur
         if(resultStats.length > 1 && resultStats[1].succ === 0) {
             this.zero_succ_count++;
             for(let i = 30; i > 0; --i) {

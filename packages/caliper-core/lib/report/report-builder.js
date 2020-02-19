@@ -1,21 +1,23 @@
 /*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 
 'use strict';
 
-const logger = require('../utils/caliper-utils').getLogger('caliper-flow');
+const Config = require('../config/config-util');
+const Utils = require('../utils/caliper-utils');
+const Logger = Utils.getLogger('caliper-flow');
 const fs = require('fs');
 const Mustache = require('mustache');
 const path = require('path');
@@ -152,7 +154,7 @@ class ReportBuilder {
             this.data.tests[index].rounds.push({
                 'id' : 'round ' + id,
                 'performance' : {'head':[], 'result': []},
-                'resource' : {'head':[], 'results': []}
+                'resources': []
             });
             return id;
         } else {
@@ -163,7 +165,7 @@ class ReportBuilder {
                 'rounds': [{
                     'id' : 'round 0',
                     'performance' : {'head':[], 'result': []},
-                    'resource' : {'head':[], 'results': []}
+                    'resources': []
                 }]
             });
             return 0;
@@ -207,7 +209,16 @@ class ReportBuilder {
     }
 
     /**
-    * set resource consumption table of a specific round
+    * Add new resource consumption table of a specific round within:
+    * {
+    *   'description' : this.descriptionmap.get(label),
+    *   'label' : label,
+    *   'rounds': [{
+    *       'id' : 'round 0',
+    *        'performance' : {'head':[], 'result': []},
+    *        'resources': [ {'head':[], 'results': []} ]
+    *       }]
+    * }
     * @param {String} label the round label
     * @param {Number} id id of the round
     * @param {Array} table table array containing the resource consumption values
@@ -234,13 +245,22 @@ class ReportBuilder {
             throw new Error('unrecognized report table');
         }
 
-        this.data.tests[index].rounds[id].resource.head = table[0];
+        const results = [];
         for(let i = 1 ; i < table.length ; i++) {
             if(!Array.isArray(table)) {
                 throw new Error('unrecognized report table');
             }
-            this.data.tests[index].rounds[id].resource.results.push({'result' : table[i]});
+            results.push({'result' : table[i]});
         }
+
+        // Build a new object and add into resources array
+        const resource = {
+            head: table[0],
+            results
+        };
+        this.data.tests[index].rounds[id].resources.push(resource);
+
+        Logger.debug('resources count:', this.data.tests[index].rounds[id].resources.length);
     }
 
     /**
@@ -267,17 +287,20 @@ class ReportBuilder {
 
     /**
     * generate a HTML report for the benchmark
-    * @param {String} output filename of the output
     * @async
     */
-    async generate(output) {
+    async generate() {
         let templateStr = fs.readFileSync(this.template).toString();
         let html = Mustache.render(templateStr, this.data);
         try {
-            await fs.writeFileSync(output, html);
-            logger.info(`Generated report with path ${output}`);
+            let filePath = Config.get(Config.keys.Report.Path, 'report.html');
+            filePath = Utils.resolvePath(filePath, Config.get(Config.keys.Workspace, './'));
+            let writeOptions = Config.get(Config.keys.Report.Options, { flag: 'w', mode: 0o666 });
+
+            await fs.writeFileSync(filePath, html, writeOptions);
+            Logger.info(`Generated report with path ${filePath}`);
         } catch (err) {
-            logger.info(`Failed to generate report, with error ${err}`);
+            Logger.info(`Failed to generate report, with error ${err}`);
             throw err;
         }
     }

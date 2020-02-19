@@ -1,3 +1,4 @@
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -9,34 +10,133 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
 caliper:
+    # Settings related to the binding command
+    bind:
+        # The name of the platform to bind to
+        sut:
+        # The SDK version of the platform to bind to
+        sdk:
+        # The CWD to use for the binding (i.e., npm install) command
+        cwd:
+        # The additional args to pass to the binding (i.e., npm install) command
+        args:
+    # Report file-related options
+    report:
+        # The absolute or workspace-relative path of the report file.
+        path: 'report.html'
+        # The options to pass to fs.writeFile
+        options:
+            flag: 'w'
+            mode: 0666
+    # Workspace directory that contains all configuration information
+    workspace: './'
+    # The file path for the project-level configuration file. Can be relative to the workspace.
+    projectconfig:
+    # The file path for the user-level configuration file. Can be relative to the workspace.
+    userconfig:
+    # The file path for the user-level configuration file. Can be relative to the workspace.
+    machineconfig:
+    # Path to the benchmark workload file that describes the test client(s), test rounds and monitor
+    benchconfig:
+    # Path to the blockchain configuration file that contains information required to interact with the SUT
+    networkconfig:
+    # Address of a ZooKeeper node used by distributed clients
+    zooaddress:
+    # Path to a zookeeper service yaml file
+    zooconfig:
+    # Sets the frequency of the progress reports in milliseconds
+    txupdatetime: 1000
+    # Configurations related to the logging mechanism
+    logging:
+        # Specifies the message structure through placeholders
+        template: '%timestamp%%level%%label%%module%%message%%metadata%'
+        # Enables the different formats to apply to the log messages FOR ALL transports
+        # Each format can be disabled by setting it to false
+        formats:
+            # Adds a timestamp to the messages with the following format
+            timestamp: 'YYYY.MM.DD-HH:mm:ss.SSS'
+            # Adds a specified label to every message. Useful for distributed client scenario
+            label: caliper
+            # serializes the log messages as JSON
+            json: false
+            # pads the levels to be the same length
+            pad: true
+            # adds a tab delimiter before the message to align it in the same place
+            align: true
+            # specifies formatting strings for different log message attributes
+            attributeformat:
+                # add a space before the level
+                level: ' %attribute%'
+                # put [] around the label and space before it
+                label: ' [%attribute%]'
+                # put [] around the module name and space before/after it
+                module: ' [%attribute%] '
+                # put () around the metadata and space before it
+                metadata: ' (%attribute%)'
+            # defines coloring for the different levels for each (or all) message property
+            colorize:
+                # Apply it to levels
+                level: true
+                # Apply it to messages
+                message: false
+                # The colors for each level
+                colors:
+                    info: green
+                    error: red
+                    warn: yellow
+                    debug: grey
+        # Lists the targets (winston transports)
+        targets:
+            console:
+                target: console # Defines a console target
+                enabled: true # Enables the target
+                options: # These are passed to the winston console target as-is
+                    level: info
+            # Defines a target with debug level
+            file:
+                target: file
+                enabled: true
+                options:
+                    level: debug
+                    filename: caliper.log
+                    maxSize: 5m
+                    zippedArchive: false
+                    options:
+                        flags: a
+                        mode: 0666
 
-    # Configurations related to core Caliper behaviors
-    core:
-        # Sets the frequency of the progress reports in milliseconds
-        txupdatetime: 1000
-        # Indicates whether to skip the start command script in the network configuration file, if provided
-        skipstartscript: false
-        # Indicates whether to skip the end command script in the network configuration file, if provided
-        skipendscript: false
-        # Configurations related to the logging mechanism
-        logging:
-            # Defines a console target with info level
-            consolelogger:
-                target: console
-                level: info
-            # Defines a daily rotating file target with debug level
-            filelogger:
-                target: daily-rotate-file
-                level: debug
-                filename: log/caliper-%DATE%.log
-                datePattern: YYYY-MM-DD-HH
-                maxSize: 5m
-                zippedArchive: true
+    # Caliper flow options
+    flow:
+        # Skip options
+        skip:
+            # Indicates whether to skip the start command script in the network configuration file, if provided
+            start: false
+            # Indicates whether to skip the init phase of the benchmark
+            init: false
+            # Indicates whether to skip the smart contract install phase of the benchmark
+            install: false
+            # Indicates whether to skip the test phase of the benchmark
+            test: false
+            # Indicates whether to skip the end command script in the network configuration file, if provided
+            end: false
+        # Only options
+        only:
+            # Indicates whether to only perform the start command script in the network configuration file, if provided
+            start: false
+            # Indicates whether to only perform the init phase of the benchmark
+            init: false
+            # Indicates whether to only perform the smart contract install phase of the benchmark
+            install: false
+            # Indicates whether to only perform the test phase of the benchmark
+            test: false
+            # Indicates whether to only perform the end command script in the network configuration file, if provided
+            end: false
 
     # Configurations related to the Fabric CCP adapter
-    fabricccp:
+    fabric:
         # Sets the sleep behaviors after different init actions
         sleepafter:
             # The time in milliseconds to sleep after creating the channels (if created channels at all)
@@ -70,6 +170,11 @@ caliper:
         latencythreshold: 1.0
         # Indicates whether to count queries as workload, i.e., whether the generated report should include them
         countqueryasload: true
+        # Indicates whether to use the Fabric Gateway API
+        usegateway: false
+        # Indicates whether to use the localhost default within the Fabric Gateway API
+        gatewaylocalhost: true
+        # Indicates whether to use the Fabric discovery mechanism (via Gateway API)
+        discovery: false
 
-    fabric:
     sawtooth:

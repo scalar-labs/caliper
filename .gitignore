@@ -1,36 +1,36 @@
-architecture.pptx
-.idea/*
 *.bak
-zookeeper.out
-node_modules/
-package-lock.json
-output.log
 
-#Ignore default Caliper log location
-log/
-
-# Ignore any generted html files, but include the report html template
+# Ignore any generated html files, but include the report html template
 *.html
 !/packages/caliper-core/lib/report/template/report.html
 
 # Ignore DS_Store files from Mac
 **.DS_Store
 
-# Ignore any composer logs
-composer-logs/
-
-# Ignore code coverage logs
-.nyc_output/
-coverage/
-
-# We prefer to not use lock files
-package-lock.json
+architecture.pptx
+output.log
+lerna-debug.log
 
 # Ignore zookeeper files
 zookeeper.out
 
+# We prefer to not use lock files
+**/package-lock.json
+
+.idea/
+**/node_modules/
+**/log/
+**/*.log
+
+# Ignore any composer logs
+composer-logs/
+
+# Ignore code coverage logs
+**/.nyc_output/
+**/coverage/
+
 # Ignore IDE files
-.vscode/*
+.vscode/
 
 # Website files
 .sass-cache/
@@ -42,3 +42,12 @@ _site/
 
 # pm2 files
 **/.pm2/
+
+# lerna log
+lerna-debug.log
+
+# contract address file
+**/*.address
+
+# Ignore data
+data/

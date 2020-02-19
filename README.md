@@ -1,41 +1,40 @@
-## Hyperledger Caliper
+# ![Hyperledger Caliper](https://wiki.hyperledger.org/download/attachments/2392434/Hyperledger_Caliper_Logo_Color.svg?version=1&modificationDate=1548883186000&api=v2)
+
+[![Build Status](https://travis-ci.org/hyperledger/caliper.svg?branch=master)](https://travis-ci.org/hyperledger/caliper)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2381/badge)](https://bestpractices.coreinfrastructure.org/projects/2381)
+[![license](https://img.shields.io/badge/license-Apache%202.0-blue)](https://github.com/aklenik/caliper/blob/master/LICENSE)
+[![node (scoped)](https://img.shields.io/node/v/@hyperledger/caliper-cli)](https://www.npmjs.com/package/@hyperledger/caliper-cli)
+[![npm (scoped)](https://img.shields.io/npm/v/@hyperledger/caliper-cli?label=version)](https://www.npmjs.com/package/@hyperledger/caliper-cli)
+[![npm](https://img.shields.io/npm/dt/@hyperledger/caliper-cli?label=npm%20downloads)](https://www.npmjs.com/package/@hyperledger/caliper-cli)
+[![Docker Pulls](https://img.shields.io/docker/pulls/hyperledger/caliper)](https://hub.docker.com/r/hyperledger/caliper)
+[![Rocket.Chat](https://img.shields.io/badge/rocket.chat-caliper-red)](https://chat.hyperledger.org/channel/caliper)
+[![Mailing list](https://img.shields.io/badge/mailing%20list-caliper-blue)](https://lists.hyperledger.org/g/caliper/topics)
 
 Welcome to the Hyperledger Caliper project. Caliper is a blockchain performance benchmark framework, which allows users to test different blockchain solutions with predefined use cases, and get a set of performance test results.
 
 Currently supported blockchain solutions:
-* [fabric v1.0+](https://github.com/hyperledger/fabric), the lastest version that has been verified is v1.1.0
-* [sawtooth 1.0+](https://github.com/hyperledger/sawtooth-core)
-* [Iroha 1.0 beta-3](https://github.com/hyperledger/iroha)
-* [Burrow 1.0](https://github.com/hyperledger/burrow)
 
-[Hyperledger Composer](https://github.com/hyperledger/composer) is also supported.
+* [Hyperledger Fabric v1.X](https://github.com/hyperledger/fabric)
+* [Hyperledger Sawtooth 1.0+](https://github.com/hyperledger/sawtooth-core)
+* [Hyperledger Iroha 1.0 beta-3](https://github.com/hyperledger/iroha)
+* [Hyperledger Burrow 1.0](https://github.com/hyperledger/burrow)
+* [Ethereum](https://github.com/ethereum/go-ethereum)
+* [Hyperledger Besu](https://github.com/hyperledger/besu), utilizing the Ethereum adapter.
+* [FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS)
+* [Hyperledger Composer](https://github.com/hyperledger/composer) support has been deprecated, and will be removed in 0.3.0.
 
 Currently supported performance indicators:
 * Success rate
 * Transaction/Read throughput
-* Transaction/Read latency(minimum, maximum, average, percentile)
-* Resource consumption (CPU, Memory, Network IO,...)
+* Transaction/Read latency (minimum, maximum, average)
+* Resource consumption (CPU, Memory, Network IO, ...)
 
-See contact [performance and scale workgroup](https://chat.hyperledger.org/channel/performance-and-scale-wg) to find out the definitions and corresponding measurement methods.  
+See the [PSWG white paper](https://www.hyperledger.org/resources/publications/blockchain-performance-metrics) to find out the definitions and corresponding measurement methods.  
 
-For more information on using Caliper please consult the [documentation site](https://hyperledger.github.io/caliper/)
+For more information on using Caliper, please consult the [documentation site](https://hyperledger.github.io/caliper/)
 
-## Pre-requisites
-
-Make sure following tools are installed:
-* NodeJS 8 (LTS), 9, or 10 (LTS) *we do not support higher versions as the dependancy chain does not permit this*
-* node-gyp
-* Docker
-* Docker-compose
-
-## Building Caliper
-Caliper is split into pacakges that are managed by Lerna, a tool for managing JavaScript projects with multiple packages. To build Caliper, it is necessary to first pull the required base dependancies, and then bootstrap the Caliper project. Note that if you modify base code, it is necessary to rebuild the project
-
-* Run `npm install` in Caliper root folder to install base dependencies locally
-* Run `npm run repoclean` in Caliper root folder to ensure that all the packages are clean
-* Run `npm run bootstrap` to bootstrap the packages in the Caliper repository. This will install all package dependancies and link any cross dependancies. It will take some time to finish installation. If it is interrupted by ctrl+c, please recover the file package.json first and then run `npm run bootstrap` again.
-
-Do not run any of the above commands with `sudo`, as it will cause the bootstrap process to fail
+## Install and usage
+See the [related documentation page](https://hyperledger.github.io/caliper/vLatest/installing-caliper/).
 
 ## How to contact us
 
@@ -44,7 +43,8 @@ If you have any issues using Caliper that the documentation does not help you so
 * [Issues](https://github.com/hyperledger/caliper/issues) Feel free to raise an issue if you are facing a Caliper related problem
 
 Caliper interacts with multiple blockchain technologies and consequently it *might* be an issue with the underlying blockchain technology being interacted with. You can seek specific help on these technologies within the following Rocket Chat channels:
-* [Hypereledger Burrow](https://chat.hyperledger.org/channel/burrow)
+* [Hyperledger Besu](https://chat.hyperledger.org/channel/besu)
+* [Hyperledger Burrow](https://chat.hyperledger.org/channel/burrow)
 * [Hyperledger Composer](https://chat.hyperledger.org/channel/composer)
 * [Hyperledger Fabric](https://chat.hyperledger.org/channel/fabric)
 * [Hyperledger Iroha](https://chat.hyperledger.org/channel/iroha)
