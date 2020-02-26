@@ -10,7 +10,7 @@
 
 const fs = require('fs');
 const {ClientService} = require('@scalar-labs/scalardl-node-client-sdk');
-const {BlockchainInterface, CaliperUtils, TxStatus} = require('caliper-core');
+const {BlockchainInterface, CaliperUtils, TxStatus} = require('@hyperledger/caliper-core');
 const logger = CaliperUtils.getLogger('scalardl.js');
 
 /**
