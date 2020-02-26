@@ -23,7 +23,7 @@ let Sleep = require('../utils/caliper-utils').sleep;
  * The TPS rate must be specified within the options for the controller type:
  * "rateControl" : [{"type": "fixed-rate", "opts": {"tps" : 10}}]
  *
- */
+*/
 class FixedRate extends RateInterface {
 
     /**
@@ -50,7 +50,7 @@ class FixedRate extends RateInterface {
      * @param {number} msg.txDuration The length of the round in SECONDS.
      * @param {number} msg.totalClients The number of clients executing the round.
      * @param {number} msg.clients The number of clients executing the round.
-     * @param {object} msg.clientargs Arguments for the client.
+     * @param {object} msg.clientArgs Arguments for the client.
      * @param {number} msg.clientIdx The 0-based index of the current client.
      * @param {number} msg.roundIdx The 1-based index of the current round.
      * @async

@@ -1,21 +1,21 @@
 /*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 'use strict';
 
 // Caliper-Core requires
-const {BlockchainInterface, CaliperUtils, TxStatus}= require('caliper-core');
+const {BlockchainInterface, CaliperUtils, TxStatus}= require('@hyperledger/caliper-core');
 const logger = CaliperUtils.getLogger('composer.js');
 
 // Composer helpers
@@ -159,7 +159,7 @@ class Composer extends BlockchainInterface {
             .catch((err) => {
                 invoke_status.SetStatusFail();
                 invoke_status.result = [];
-
+                logger.error('submitTransaction failed with error: ', err);
                 return Promise.resolve(invoke_status);
             });
     }

@@ -1,18 +1,20 @@
 /*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 'use strict';
+
+const Logger = require('./utils/caliper-utils').getLogger('blockchain');
 
 /**
  * BlockChain class, define operations to interact with the blockchain system under test
@@ -28,10 +30,10 @@ class Blockchain {
     }
 
     /**
-     * return the blockchain's type
+     * return the blockchain type
      * @return {string} type of the blockchain
      */
-    gettype() {
+    getType() {
         return this.bcType;
     }
 
@@ -54,7 +56,7 @@ class Blockchain {
     }
 
     /**
-    * Install smart contract(s), detail informations are defined in the blockchain configuration file
+    * Install smart contract(s), detail information is defined in the blockchain configuration file
     * @async
     */
     async installSmartContract() {
@@ -86,7 +88,7 @@ class Blockchain {
     /**
      * Invoke smart contract/submit transactions and return corresponding transactions' status
      * @param {Object} context context object
-     * @param {String} contractID identiy of the contract
+     * @param {String} contractID identity of the contract
      * @param {String} contractVer version of the contract
      * @param {Array} args array of JSON formatted arguments for multiple transactions
      * @param {Number} timeout request timeout, in second
@@ -115,13 +117,44 @@ class Blockchain {
     }
 
     /**
+     * Query state from the ledger using a smart contract
+     * @param {Object} context context object
+     * @param {String} contractID identity of the contract
+     * @param {String} contractVer version of the contract
+     * @param {Array} args array of JSON formatted arguments
+     * @param {Number} timeout request timeout, in seconds
+     * @return {Promise} query response object
+     */
+    async querySmartContract(context, contractID, contractVer, args, timeout) {
+        let arg, time;
+        if(Array.isArray(args)) {
+            arg = args;
+        }
+        else if(typeof args === 'object') {
+            arg = [args];
+        }
+        else {
+            throw new Error('Invalid args for querySmartContract()');
+        }
+
+        if(typeof timeout !== 'number' || timeout < 0) {
+            time = 120;
+        }
+        else {
+            time = timeout;
+        }
+
+        return await this.bcObj.querySmartContract(context, contractID, contractVer, arg, time);
+    }
+
+    /**
      * Query state from the ledger
      * @param {Object} context context object from getContext
-     * @param {String} contractID identiy of the contract
+     * @param {String} contractID identity of the contract
      * @param {String} contractVer version of the contract
      * @param {String} key lookup key
      * @param {String=} [fcn] query function name
-     * @return {Promise} as invokeSmateContract()
+     * @return {Object} as invokeSmartContract()
      */
     async queryState(context, contractID, contractVer, key, fcn) {
         return await this.bcObj.queryState(context, contractID, contractVer, key, fcn);
@@ -129,11 +162,11 @@ class Blockchain {
 
     /**
     * Calculate the default transaction statistics
-    * @param {Array} results array of txStatus
+    * @param {Array} resultArray array of txStatus
     * @param {Boolean} detail indicates whether to keep detailed information
     * @return {JSON} txStatistics JSON object
     */
-    getDefaultTxStats(results, detail) {
+    getDefaultTxStats(resultArray, detail) {
         let succ = 0, fail = 0, delay = 0;
         let minFinal, maxFinal, minCreate, maxCreate;
         let maxLastFinal;
@@ -142,8 +175,8 @@ class Blockchain {
         let sTPTotal = 0;
         let sTTotal = 0;
         let invokeTotal = 0;
-        for(let i = 0 ; i < results.length ; i++) {
-            let stat   = results[i];
+        for(let i = 0 ; i < resultArray.length ; i++) {
+            let stat   = resultArray[i];
             sTPTotal = sTPTotal + stat.Get('sTP');
             sTTotal = sTTotal + stat.Get('sT');
             invokeTotal += stat.Get('invokeLatency');
@@ -216,7 +249,7 @@ class Blockchain {
             'sTPTotal': sTPTotal,
             'sTTotal': sTTotal,
             'invokeTotal': invokeTotal,
-            'length': results.length
+            'length': resultArray.length
         };
         return stats;
     }
@@ -224,15 +257,15 @@ class Blockchain {
     /**
      * merge an array of default 'txStatistics', the result is in first object of the array
      * Note even failed the first object of the array may still be changed
-     * @param {Array} results txStatistics array
+     * @param {Array} resultArray txStatistics array
      * @return {Number} 0 if failed; otherwise 1
      */
-    static mergeDefaultTxStats(results) {
+    static mergeDefaultTxStats(resultArray) {
         try{
             // skip invalid result
             let skip = 0;
-            for(let i = 0 ; i < results.length ; i++) {
-                let result = results[i];
+            for(let i = 0 ; i < resultArray.length ; i++) {
+                let result = resultArray[i];
 
                 if(!result.hasOwnProperty('succ') || !result.hasOwnProperty('fail') || (result.succ + result.fail) === 0) {
                     skip++;
@@ -243,16 +276,16 @@ class Blockchain {
             }
 
             if(skip > 0) {
-                results.splice(0, skip);
+                resultArray.splice(0, skip);
             }
 
-            if(results.length === 0) {
+            if(resultArray.length === 0) {
                 return 0;
             }
 
-            let r = results[0];
-            for(let i = 1 ; i < results.length ; i++) {
-                let v = results[i];
+            let r = resultArray[0];
+            for(let i = 1 ; i < resultArray.length ; i++) {
+                let v = resultArray[i];
                 if(!v.hasOwnProperty('succ') || !v.hasOwnProperty('fail') || (v.succ + v.fail) === 0) {
                     continue;
                 }
@@ -292,7 +325,7 @@ class Blockchain {
             return 1;
         }
         catch(err) {
-            //throw err;
+            Logger.error(err);
             return 0;
         }
     }

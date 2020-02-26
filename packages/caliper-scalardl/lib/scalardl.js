@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Scalar, Inc. All Rights Reserved.
+ * Copyright 2019,2020 Scalar, Inc. All Rights Reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -10,7 +10,7 @@
 
 const fs = require('fs');
 const {ClientService} = require('@scalar-labs/scalardl-node-client-sdk');
-const {BlockchainInterface, CaliperUtils, TxStatus} = require('caliper-core');
+const {BlockchainInterface, CaliperUtils, TxStatus} = require('@hyperledger/caliper-core');
 const logger = CaliperUtils.getLogger('scalardl.js');
 
 /**
@@ -22,6 +22,7 @@ const logger = CaliperUtils.getLogger('scalardl.js');
 function getClientProperties(config, workspaceRoot) {
     let host = config.scalardl.network.client_properties.host;
     let port = config.scalardl.network.client_properties.port;
+    let privPort = config.scalardl.network.client_properties.privileged_port;
     let chid = config.scalardl.network.client_properties.cert_holder_id;
     let cver = config.scalardl.network.client_properties.cert_version;
     let tls  = config.scalardl.network.client_properties.tls_enabled;
@@ -29,13 +30,14 @@ function getClientProperties(config, workspaceRoot) {
     let privateKeyPem = fs.readFileSync(CaliperUtils.resolvePath(config.scalardl.network.client_properties.private_key_path, workspaceRoot)).toString();
 
     return {
-        'scalar.ledger.client.server_host': host,
-        'scalar.ledger.client.server_port': port,
-        'scalar.ledger.client.cert_holder_id': chid,
-        'scalar.ledger.client.cert_pem': certPem,
-        'scalar.ledger.client.cert_version': cver,
-        'scalar.ledger.client.private_key_pem': privateKeyPem,
-        'scalar.ledger.client.tls.enabled': tls,
+        'scalar.dl.client.server.host': host,
+        'scalar.dl.client.server.port': port,
+        'scalar.dl.client.server.privileged_port': privPort,
+        'scalar.dl.client.cert_holder_id': chid,
+        'scalar.dl.client.cert_pem': certPem,
+        'scalar.dl.client.cert_version': cver,
+        'scalar.dl.client.private_key_pem': privateKeyPem,
+        'scalar.dl.client.tls.enabled': tls,
     };
 }
 
@@ -93,14 +95,10 @@ class ScalarDL extends BlockchainInterface {
         let clientService = new ClientService(cp);
         try {
             logger.info('registering a client......');
-            let res = await clientService.registerCertificate();
-            let status = res.getStatus();
-            if (status !== 200) {
-                throw new Error(`Scalar DL responded with status "${status}"`);
-            }
-        } catch(err) {
-            logger.error(`Scalar DL client registration failed: ${(err.stack ? err.stack : err)}`);
-            throw err;
+            await clientService.registerCertificate();
+        } catch(clientError) {
+            logger.error(`Scalar DL client registration failed: (${clientError.code}) ${clientError.message}`);
+            throw clientError;
         }
 
         return CaliperUtils.sleep(2000);
@@ -123,16 +121,11 @@ class ScalarDL extends BlockchainInterface {
                 logger.info(`Installing contract ${contract.id}...`);
 
                 let buff = fs.readFileSync(CaliperUtils.resolvePath(contract.path, contractRoot));
-                let res = await clientService.registerContract(contract.id, contract.name, new Uint8Array(buff));
-
-                let status = res.getStatus();
-                if (status !== 200) {
-                    throw new Error(`Scalar DL responded with status "${status}"`);
-                }
+                await clientService.registerContract(contract.id, contract.name, new Uint8Array(buff));
             }
-        } catch(err) {
-            logger.error(`Scalar DL contracts install failed: ${(err.stack ? err.stack : err)}`);
-            throw err;
+        } catch(clientError) {
+            logger.error(`Scalar DL contracts install failed: (${clientError.code}) ${clientError.message}`);
+            throw clientError;
         }
     }
 
@@ -217,15 +210,10 @@ class ScalarDL extends BlockchainInterface {
 
         try {
             let res = await clientService.executeContract(fcnMap[fcn], args);
-            let status = res.getStatus();
-            if (status === 200) {
-                txStatus.SetStatusSuccess();
-                txStatus.SetResult(res.getResult());
-            } else {
-                throw new Error(`Scalar DL responded with status "${status}"`);
-            }
-        } catch (err) {
-            logger.error(`Scalar DL contract execution failed: ${(err.stack ? err.stack : err)}`);
+            txStatus.SetStatusSuccess();
+            txStatus.SetResult(res.getResult());
+        } catch (clientError) {
+            logger.error(`Scalar DL contract execution failed: (${clientError.code}) ${clientError.message}`);
             txStatus.SetStatusFail();
         }
 

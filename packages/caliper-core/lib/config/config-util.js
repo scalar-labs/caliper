@@ -1,16 +1,16 @@
 /*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 'use strict';
 
@@ -48,30 +48,10 @@ function set(name, value) {
  * @param {any} defaultValue The value to return in case the key is not found.
  * @return {any} The value of the configuration or the defaultValue parameter if not found.
  */
-function get(name, defaultValue) {
+function get(name, defaultValue = undefined) {
     return _getConfigInstance().get(name, defaultValue);
 }
 
-const keys = {
-    CoreTxUpdateTime: 'caliper-core-txupdatetime',
-    CoreSkipStartScript: 'caliper-core-skipstartscript',
-    CoreSkipEndScript: 'caliper-core-skipendscript',
-    CoreLogging: 'caliper-core-logging',
-    FabricSleepAfterCreateChannel: 'caliper-fabricccp-sleepafter-createchannel',
-    FabricSleepAfterJoinChannel: 'caliper-fabricccp-sleepafter-joinchannel',
-    FabricSleepAfterInstantiateChaincode: 'caliper-fabricccp-sleepafter-instantiatechaincode',
-    FabricVerifyProposalResponse: 'caliper-fabricccp-verify-proposalresponse',
-    FabricVerifyReadWriteSets: 'caliper-fabricccp-verify-readwritesets',
-    FabricTimeoutChaincodeInstantiate: 'caliper-fabricccp-timeout-chaincodeinstantiate',
-    FabricTimeoutChaincodeInstantiateEvent: 'caliper-fabricccp-timeout-chaincodeinstantiateevent',
-    FabricTimeoutInvokeOrQuery: 'caliper-fabricccp-timeout-invokeorquery',
-    FabricLoadBalancing: 'caliper-fabricccp-loadbalancing',
-    FabricOverwriteGopath: 'caliper-fabricccp-overwritegopath',
-    FabricLatencyThreshold: 'caliper-fabricccp-latencythreshold',
-    FabricCountQueryAsLoad: 'caliper-fabricccp-countqueryasload',
-    FabricSkipCreateChannelPrefix: 'caliper-fabricccp-skipcreatechannel-'
-};
-
 module.exports.get = get;
 module.exports.set = set;
-module.exports.keys = keys;
+module.exports.keys = Config.keys;

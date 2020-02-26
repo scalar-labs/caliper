@@ -24,7 +24,7 @@ const QueryService_v1Client = IrohaService_v1Client.QueryService_v1Client;
 
 const generateKeypair = require('iroha-helpers/lib/cryptoHelper.js').default;
 
-const {BlockchainInterface, CaliperUtils, TxStatus} = require('caliper-core');
+const {BlockchainInterface, CaliperUtils, TxStatus} = require('@hyperledger/caliper-core');
 const logger = CaliperUtils.getLogger('iroha.js');
 
 const irohaQueries = require('iroha-helpers/lib/queries').default;
@@ -387,7 +387,7 @@ class Iroha extends BlockchainInterface {
             this.grpcQueryClient = new QueryService_v1Client(context.torii, grpc.credentials.createInsecure());
             return Promise.resolve(context);
         }catch(err) {
-            logger.error(err);
+            logger.error(`Error within getContext: ${err.stack ? err.stack : err}`);
             return Promise.reject(new Error('Failed when finding access point or user key'));
         }
     }
