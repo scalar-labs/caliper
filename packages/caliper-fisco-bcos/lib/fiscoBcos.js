@@ -14,15 +14,17 @@
 
 'use strict';
 
+const path = require('path');
+
 const {
     BlockchainInterface,
-    CaliperUtils
+    CaliperUtils,
+    ConfigUtil
 } = require('@hyperledger/caliper-core');
 const installSmartContractImpl = require('./installSmartContract');
 const invokeSmartContractImpl = require('./invokeSmartContract');
 const generateRawTransactionImpl = require('./generateRawTransactions');
 const sendRawTransactionImpl = require('./sendRawTransactions');
-const Color = require('./common');
 const commLogger = CaliperUtils.getLogger('fiscoBcos.js');
 
 /**
@@ -31,14 +33,29 @@ const commLogger = CaliperUtils.getLogger('fiscoBcos.js');
 class FiscoBcos extends BlockchainInterface {
     /**
      * Create a new instance of the {FISCO BCOS} class.
-     * @param {string} config_path The absolute path of the FISCO BCOS network configuration file.
-     * @param {string} workspace_root The absolute path to the root location for the application configuration files.
+     * @param {number} workerIndex The zero-based index of the worker who wants to create an adapter instance. -1 for the master process.
      */
-    constructor(config_path, workspace_root) {
-        super(config_path);
+    constructor(workerIndex) {
+        super();
         this.bcType = 'fisco-bcos';
-        this.workspaceRoot = workspace_root;
-        this.fiscoBcosSettings = CaliperUtils.parseYaml(this.configPath)['fisco-bcos'];
+        this.workspaceRoot = path.resolve(ConfigUtil.get(ConfigUtil.keys.Workspace));
+        let networkConfig = CaliperUtils.resolvePath(ConfigUtil.get(ConfigUtil.keys.NetworkConfig));
+        this.fiscoBcosSettings = CaliperUtils.parseYaml(networkConfig)['fisco-bcos'];
+
+        if (this.fiscoBcosSettings.network && this.fiscoBcosSettings.network.authentication) {
+            for (let k in this.fiscoBcosSettings.network.authentication) {
+                this.fiscoBcosSettings.network.authentication[k] = CaliperUtils.resolvePath(this.fiscoBcosSettings.network.authentication[k]);
+            }
+        }
+        this.clientIdx = workerIndex;
+    }
+
+    /**
+     * Retrieve the blockchain type the implementation relates to
+     * @returns {string} the blockchain type
+     */
+    getType() {
+        return this.bcType;
     }
 
     /**
@@ -55,11 +72,11 @@ class FiscoBcos extends BlockchainInterface {
      * @async
      */
     async installSmartContract() {
-        const fiscoBcosSettings = CaliperUtils.parseYaml(this.configPath)['fisco-bcos'];
+        const fiscoBcosSettings = this.fiscoBcosSettings;
         try {
             await installSmartContractImpl.run(fiscoBcosSettings, this.workspaceRoot);
         } catch (error) {
-            commLogger.error(Color.error(`FISCO BCOS smart contract install failed: ${(error.stack ? error.stack : error)}`));
+            commLogger.error(`FISCO BCOS smart contract install failed: ${(error.stack ? error.stack : error)}`);
             throw error;
         }
     }
@@ -72,10 +89,9 @@ class FiscoBcos extends BlockchainInterface {
      * }
      * @param {String} name name of the context
      * @param {Object} args adapter specific arguments
-     * @param {Integer} clientIdx the client index
      * @return {Promise<object>} The promise for the result of the execution.
      */
-    async getContext(name, args, clientIdx) {
+    async getContext(name, args) {
         return Promise.resolve();
     }
 
@@ -116,7 +132,7 @@ class FiscoBcos extends BlockchainInterface {
 
             return await Promise.all(promises);
         } catch (error) {
-            commLogger.error(Color.error(`FISCO BCOS smart contract invoke failed: ${(error.stack ? error.stack : JSON.stringify(error))}`));
+            commLogger.error(`FISCO BCOS smart contract invoke failed: ${(error.stack ? error.stack : JSON.stringify(error))}`);
             throw error;
         }
     }
@@ -134,7 +150,7 @@ class FiscoBcos extends BlockchainInterface {
         try {
             return invokeSmartContractImpl.run(context, this.fiscoBcosSettings, contractID, fcn, key, this.workspaceRoot, true);
         } catch (error) {
-            commLogger.error(Color.error(`FISCO BCOS smart contract query failed: ${(error.stack ? error.stack : error)}`));
+            commLogger.error(`FISCO BCOS smart contract query failed: ${(error.stack ? error.stack : error)}`);
             throw error;
         }
     }

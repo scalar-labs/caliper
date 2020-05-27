@@ -14,5 +14,4 @@
 
 'use strict';
 
-module.exports.AdminClient = require('./lib/iroha');
-module.exports.ClientFactory = require('./lib/irohaClientFactory');
+module.exports.AdapterFactory = require('./lib/adapterFactory').adapterFactory;

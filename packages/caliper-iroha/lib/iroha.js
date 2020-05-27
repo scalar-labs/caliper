@@ -24,7 +24,7 @@ const QueryService_v1Client = IrohaService_v1Client.QueryService_v1Client;
 
 const generateKeypair = require('iroha-helpers/lib/cryptoHelper.js').default;
 
-const {BlockchainInterface, CaliperUtils, TxStatus} = require('@hyperledger/caliper-core');
+const {BlockchainInterface, CaliperUtils, ConfigUtil, TxStatus} = require('@hyperledger/caliper-core');
 const logger = CaliperUtils.getLogger('iroha.js');
 
 const irohaQueries = require('iroha-helpers/lib/queries').default;
@@ -195,10 +195,23 @@ function irohaQuery(queryOptions, commands) {
  * Implements {BlockchainInterface} for a Iroha backend.
  */
 class Iroha extends BlockchainInterface {
-    constructor(config_path, workspace_root) {
-        super(config_path);
+    /**
+     * Create a new instance of the {Iroha} class.
+     * @param {number} workerIndex The zero-based index of the worker who wants to create an adapter instance. -1 for the master process. Currently unused.
+     */
+    constructor(workerIndex) {
+        super();
+        this.configPath = CaliperUtils.resolvePath(ConfigUtil.get(ConfigUtil.keys.NetworkConfig));
         this.bcType = 'iroha';
-        this.workspaceRoot = workspace_root;
+        this.clientIndex = workerIndex;
+    }
+
+    /**
+     * Retrieve the blockchain type the implementation relates to
+     * @returns {string} the blockchain type
+     */
+    getType() {
+        return this.bcType;
     }
 
     /**
@@ -223,29 +236,29 @@ class Iroha extends BlockchainInterface {
     }
 
     /**
-     * Perform required preparation for test clients
+     * Perform required information for test clients
      * @param {Number} number count of test clients
      * @return {Promise} obtained material for test clients
      */
-    async prepareClients(number) {
+    async prepareWorkerArguments(number) {
         try{
             // get admin info
             let config = require(this.configPath);
             let admin        = config.iroha.admin;
             let domain       = admin.domain;
             let adminAccount = admin.account + '@' + admin.domain;
-            let privPath     = CaliperUtils.resolvePath(admin['key-priv'], this.workspaceRoot);
-            let pubPath      = CaliperUtils.resolvePath(admin['key-pub'], this.workspaceRoot);
+            let privPath     = CaliperUtils.resolvePath(admin['key-priv']);
+            let pubPath      = CaliperUtils.resolvePath(admin['key-pub']);
             let adminPriv    = fs.readFileSync(privPath).toString();
             let adminPub     = fs.readFileSync(pubPath).toString();
             // test
-            logger.info(`Admin's private key: ${adminPriv}`);
-            logger.info(`Admin's public key: ${adminPub}`);
+            logger.debug(`Admin's private key: ${adminPriv}`);
+            logger.debug(`Admin's public key: ${adminPub}`);
 
             // create account for each client
             let result = [];
             let node = this._findNode();
-            logger.info('node: ' + node.torii);
+            logger.debug('node: ' + node.torii);
 
             let commandService = new CommandService_v1Client(
                 node.torii,
@@ -325,20 +338,18 @@ class Iroha extends BlockchainInterface {
         }
         catch(err){
             logger.error(err);
-            return Promise.reject(new Error('Failed when prepareClients'));
+            return Promise.reject(new Error('Failed in prepareWorkerArguments'));
         }
     }
 
     /**
      * Return the Iroha context associated with the given callback module name.
      * @param {string} name The name of the callback module as defined in the configuration files, for example open or query.
-     * @param {object} args Unused, the client material returned by function prepareClient.
-     * @param {Integer} clientIdx The client index.
-     * @param {Object} txFile the file information for reading or writing.
+     * @param {object} args The client material returned by function prepareWorkerArguments.
      * @return {object} The assembled Iroha context.
      * @async
      */
-    async getContext(name, args, clientIdx, txFile) {
+    async getContext(name, args) {
         try {
             if(!args.hasOwnProperty('name') || !args.hasOwnProperty('domain') || !args.hasOwnProperty('id') || !args.hasOwnProperty('pubKey') || !args.hasOwnProperty('privKey')) {
                 throw new Error('Invalid Iroha::getContext arguments');
@@ -363,7 +374,7 @@ class Iroha extends BlockchainInterface {
             for(let i = 0 ; i < fc.length ; i++) {
                 let contract = fc[i];
                 //load the fakeContract.
-                let facPath  = CaliperUtils.resolvePath(contract.factory,this.workspaceRoot);
+                let facPath  = CaliperUtils.resolvePath(contract.factory);
                 let factory  = require(facPath);
                 for(let j = 0 ; j < contract.id.length ; j++) {
                     let id = contract.id[j];

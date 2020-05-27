@@ -14,21 +14,21 @@
 
 ---
 test:
-    clients:
+    workers:
         type: local
         number: 2
     rounds:
     - label: init1
-      txNumber: [100]
-      rateControl: [{ type: 'fixed-rate', opts: { tps: 20 } }]
+      txNumber: 100
+      rateControl: { type: 'fixed-rate', opts: { tps: 20 } }
       callback: ../init.js
     - label: init2
-      txNumber: [200]
-      rateControl: [{ type: 'fixed-feedback-rate', opts: { tps: 20, unfinished_per_client: 5 } }]
+      txNumber: 200
+      rateControl: { type: 'fixed-feedback-rate', opts: { tps: 20, unfinished_per_client: 5 } }
       callback: ../init.js
     - label: query
-      txNumber: [100]
-      rateControl: [{ type: 'linear-rate', opts: { startingTps: 10, finishingTps: 20 } }]
+      txNumber: 100
+      rateControl: { type: 'linear-rate', opts: { startingTps: 10, finishingTps: 20 } }
       callback: ../query.js
 observer:
     interval: 1
@@ -53,3 +53,8 @@ monitor:
                     label: name
                     statistic: max
                     multiplier: 0.000001
+        charting:
+            polar:
+                metrics: [Max Memory (MB)]
+            bar:
+                metrics: [all]

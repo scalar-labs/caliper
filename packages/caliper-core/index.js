@@ -14,10 +14,15 @@
 
 'use strict';
 
-module.exports.BlockchainInterface = require('./lib/blockchain-interface');
-module.exports.CaliperLocalClient = require('./lib/client/caliper-local-client');
-module.exports.TxStatus = require('./lib/transaction-status');
-module.exports.CaliperUtils = require('./lib/utils/caliper-utils');
-module.exports.Version = require('./lib/utils/version');
-module.exports.ConfigUtil = require('./lib/config/config-util');
-module.exports.CaliperFlow = require('./lib/caliper-flow');
+module.exports.BlockchainInterface = require('./lib/common/core/blockchain-interface');
+module.exports.CaliperLocalClient = require('./lib/worker/client/caliper-local-client');
+module.exports.TxStatus = require('./lib/common/core/transaction-status');
+module.exports.CaliperUtils = require('./lib/common/utils/caliper-utils');
+module.exports.Version = require('./lib/common/utils/version');
+module.exports.ConfigUtil = require('./lib/common/config/config-util');
+module.exports.MessageHandler = require('./lib/worker/client/message-handler');
+module.exports.Messenger = require('./lib/common/messaging/messenger');
+module.exports.CaliperEngine = require('./lib/master/caliper-engine');
+module.exports.MonitorOrchestrator = require('./lib/master/orchestrators/monitor-orchestrator');
+module.exports.RoundOrchestrator = require('./lib/master/orchestrators/round-orchestrator');
+module.exports.WorkerOrchestrator = require('./lib/master/orchestrators/worker-orchestrator');

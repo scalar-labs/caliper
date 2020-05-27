@@ -16,30 +16,33 @@
 'use strict';
 
 process.env.SUPPRESS_NO_CONFIG_WARNING = true;
-const cmdUtil = require('./lib/utils/cmdutils');
+const { CaliperUtils } = require('@hyperledger/caliper-core');
+const Logger = CaliperUtils.getLogger('cli');
 const yargs = require('yargs');
-const chalk = require('chalk');
 const version = 'v' + require('./package.json').version;
 
 let results = yargs
     .commandDir('./lib')
+    .completion()
+    .recommendCommands()
     .help()
-    .example('caliper bind\ncaliper benchmark run\ncaliper zooclient start\ncaliper zooservice start  ')
-    .demand(1)
+    .demandCommand(1, 1, 'Please specify a command to continue')
+    .example('caliper bind\ncaliper launch master\ncaliper launch worker')
     .wrap(null)
-    .strict()
     .epilogue('For more information on Hyperledger Caliper: https://hyperledger.github.io/caliper/')
-    .alias('v', 'version')
+    .alias('version', 'v')
+    .alias('help', 'h')
     .version(version)
-    .describe('v', 'show version information')
+    .describe('version', 'Show version information')
+    .describe('help', 'Show usage information')
+    .strict(false)
     .argv;
 
 results.thePromise.then( () => {
-    if (!results.quiet) {
-        cmdUtil.log(chalk.green('\nCommand succeeded\n'));
-    }
-    process.exit(0);
+    // DO NOT EXIT THE PROCESS HERE
+    // The event loops of the workers are still running at this point
+    // The default exit code is 0 anyway
 }).catch((error) => {
-    cmdUtil.log(error.stack+chalk.red('\nCommand failed\n'));
+    Logger.error(`Error during command execution: ${error}`);
     process.exit(1);
 });

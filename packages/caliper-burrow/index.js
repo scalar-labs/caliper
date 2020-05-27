@@ -14,5 +14,4 @@
 
 'use strict';
 
-module.exports.AdminClient = require('./lib/burrow');
-module.exports.ClientFactory = require('./lib/burrowClientFactory');
+module.exports.AdapterFactory = require('./lib/adapterFactory').adapterFactory;

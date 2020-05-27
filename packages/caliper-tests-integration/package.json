@@ -1,6 +1,7 @@
 {
   "name": "caliper-tests-integration",
-  "version": "0.2.0",
+  "version": "0.3.0",
+  "private": true,
   "description": "Integration tests for Hyperledger Caliper",
   "scripts": {
     "cleanup": "./scripts/cleanup.sh",
@@ -9,10 +10,7 @@
     "pretest": "npm run licchk",
     "licchk": "license-check-and-add",
     "npm_publish_local": "ARCH=`uname -m` npm_config_registry=http://localhost:4873 node ./scripts/publishNpmPackages.js http://localhost:4873",
-    "npm_publish": "node ./scripts/publishNpmPackages.js",
-    "docker_build_local": "node ./scripts/buildDockerImage.js current http://localhost:4873",
-    "docker_build": "node ./scripts/buildDockerImage.js current",
-    "run_tests": "./scripts/run-tests.sh",
+    "docker_build_local": "node ./scripts/buildDockerImage.js http://localhost:4873",
     "test": "exit 0"
   },
   "repository": {
@@ -30,20 +28,19 @@
   },
   "homepage": "https://github.com/hyperledger/caliper#readme",
   "devDependencies": {
-    "pm2": "2.10.1",
-    "verdaccio": "3.12.0",
     "license-check-and-add": "2.3.6"
   },
   "dependencies": {
-    "@hyperledger/caliper-burrow": "0.2.0",
-    "@hyperledger/caliper-cli": "0.2.0",
-    "@hyperledger/caliper-composer": "0.2.0",
-    "@hyperledger/caliper-core": "0.2.0",
-    "@hyperledger/caliper-ethereum": "0.2.0",
-    "@hyperledger/caliper-fabric": "0.2.0",
-    "@hyperledger/caliper-fisco-bcos": "0.2.0",
-    "@hyperledger/caliper-iroha": "0.2.0",
-    "@hyperledger/caliper-sawtooth": "0.2.0"
+    "@hyperledger/caliper-burrow": "0.3.0",
+    "@hyperledger/caliper-cli": "0.3.0",
+    "@hyperledger/caliper-core": "0.3.0",
+    "@hyperledger/caliper-ethereum": "0.3.0",
+    "@hyperledger/caliper-fabric": "0.3.0",
+    "@hyperledger/caliper-fisco-bcos": "0.3.0",
+    "@hyperledger/caliper-iroha": "0.3.0",
+    "@hyperledger/caliper-sawtooth": "0.3.0",
+    "yeoman-generator": "4.1.0",
+    "yosay": "^2.0.1"
   },
   "license-check-and-add-config": {
     "folder": ".",
@@ -58,15 +55,25 @@
       "scripts/storage",
       "log",
       ".DS_Store",
+      "fabric_docker_distributed_tests/.gitignore",
+      "fabric_docker_distributed_tests/config/.gitignore",
+      "fabric_docker_distributed_tests/config/bin",
+      "fabric_docker_distributed_tests/config/config",
+      "fabric_docker_distributed_tests/config/crypto-config",
+      "fabric_docker_distributed_tests/mosquitto",
+      "fabric_docker_distributed_tests/node_modules",
+      "fabric_docker_local_tests/.gitignore",
+      "fabric_docker_local_tests/config/.gitignore",
+      "fabric_docker_local_tests/config/bin",
+      "fabric_docker_local_tests/config/config",
+      "fabric_docker_local_tests/config/crypto-config",
+      "fabric_docker_local_tests/node_modules",
       "fabric_tests/.gitignore",
       "fabric_tests/config/.gitignore",
       "fabric_tests/config/bin",
       "fabric_tests/config/config",
       "fabric_tests/config/crypto-config",
-      "composer_tests/.gitignore",
-      "composer_tests/config/.gitignore",
-      "composer_tests/config/bin",
-      "composer_tests/config/config",
+      "fabric_tests/mosquitto",
       "ethereum_tests/.gitignore",
       "ethereum_tests/config/data",
       "ethereum_tests/config/keys",
@@ -79,7 +86,10 @@
       "fisco-bcos_tests/config/node1",
       "fisco-bcos_tests/config/node2",
       "fisco-bcos_tests/config/node3",
-      "fisco-bcos_tests/config/sdk"
+      "fisco-bcos_tests/config/sdk",
+      "generator_tests/fabric/.gitignore",
+      "generator_tests/fabric/config/.gitignore"
+
     ],
     "file_type_method": "EXCLUDE",
     "file_types": [
