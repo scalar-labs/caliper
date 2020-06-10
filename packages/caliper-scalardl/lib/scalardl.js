@@ -82,18 +82,6 @@ class ScalarDL extends BlockchainInterface {
         return this.bcType;
     }
 
-//     /**
-//    * Create a new instance of the {ScalarDL} class.
-//    * @param {string} configPath The path of the Scalar DL network configuration file.
-//    * @param {string} workspaceRoot The absolute path to the root location for the application configuration files.
-//    */
-//     constructor(configPath, workspaceRoot) {
-//         super(configPath);
-//         this.statusInterval = null;
-//         this.bcType = 'scalardl';
-//         this.workspaceRoot = workspaceRoot;
-//     }
-
     /**
      * Initialize the {ScalarDL} object.
      * @return {Promise} The return promise.
