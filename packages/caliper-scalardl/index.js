@@ -14,5 +14,5 @@
 
 'use strict';
 
-module.exports.AdminClient = require('./lib/scalardl');
-module.exports.ClientFactory = require('./lib/scalardlClientFactory');
+//module.exports.AdminClient = require('./lib/scalardl');
+module.exports.AdapterFactory = require('./lib/adapterFactory').adapterFactory;

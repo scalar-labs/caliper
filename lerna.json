@@ -13,6 +13,7 @@
         "packages/caliper-fisco-bcos",
         "packages/caliper-iroha",
         "packages/caliper-sawtooth",
+        "packages/caliper-scalardl",
         "packages/caliper-cli",
         "packages/caliper-publish",
         "packages/caliper-tests-integration"
