@@ -13,40 +13,73 @@ For more information on using Caliper please consult the [documentation site](ht
 ## Pre-requisites
 
 Make sure following tools are installed:
-* NodeJS 8 (LTS), 9, or 10 (LTS) *we do not support higher versions as the dependancy chain does not permit this*
-* node-gyp
-* Docker
-* Docker-compose
+* node-gyp, python2, make, g++ and git (for fetching and compiling some packages during install)
+* Node.js v8.X LTS or v10.X LTS (for running Caliper)
+* Docker and Docker Compose (only needed when running local examples, or using Caliper through its Docker image)
 
 ## Building Caliper
-Caliper is split into packages that are managed by Lerna, a tool for managing JavaScript projects with multiple packages. To build Caliper, it is necessary to first pull the required base dependancies, and then bootstrap the Caliper project. Note that if you modify base code, it is necessary to rebuild the project
 
-* Run `npm install` in Caliper root folder to install base dependencies locally
-* Run `npm run repoclean` in Caliper root folder to ensure that all the packages are clean
-* Run `npm run bootstrap` to bootstrap the packages in the Caliper repository. This will install all package dependancies and link any cross dependancies. It will take some time to finish the installation. If it is interrupted by ctrl+c, please recover the file package.json first and then run `npm run bootstrap` again.
+To install the basic dependencies of the repository, and to resolve the cross-references between the different packages in the repository, you must execute the following commands from the root of the repository directory:
+1. `npm i`: Installs development-time dependencies, such as [Lerna](https://github.com/lerna/lerna#readme) and the license checking package.
+2. `npm run repoclean`: Cleans up the `node_modules` directory of all packages in the repository. Not needed for a freshly cloned repository.
+3. `npm run bootstrap`: Installs the dependencies of all packages in the repository and links any cross-dependencies between the packages. It will take some time to finish installation. If it is interrupted by `ctrl+c`, please recover the `package.json` file first and then run `npm run bootstrap` again.
 
-## Running a Benchmark
+Or as a one-liner:
+```console
+user@ubuntu:~/caliper$ npm i && npm run repoclean -- --yes && npm run bootstrap
+```
+
+> __Note:__ do not run any of the above commands with `sudo`, as it will cause the bootstrap process to fail.
+
+## Running Sample Benchmarks
+
+Before running a benchmark, clone configuration files from [here](https://github.com/scalar-labs/caliper-benchmarks).
 
 To run a benchmark, go to `packages/caliper-cli` directory and execute the following command.
 
 ```
-node caliper.js benchmark run -w <path to workspace> -c <benchmark config> -n <blockchain config>
+node caliper.js launch master \\
+  --caliper-workspace /path/to/caliper-benchmarks \\
+  --caliper-benchconfig benchmarks/scenario/smallbank/config.yaml \\
+  --caliper-networkconfig networks/scalardl/scalardl_smallbank.json
 ```
 
-- -w : path to a workspace directory (required).
-- -c : relative path from the workspace to the benchmark configuration file (required).
-- -n : relative path from the workspace to the config file of the blockchain network under test (required).
+- --caliper-workspace : path to a workspace directory that has configuration files (required).
+- --caliper-benchconfig : relative path from the workspace to the benchmark configuration file (required).
+- --caliper-networkconfig : relative path from the workspace to the config file of the blockchain network under test (required).
 
-All predefined benchmarks can be found in `packages/caliper-samples/benchmark`. Example network configurations for Scalar DL such as client properties and contract settings can be found in `packages/caliper-samples/network/scalardl`.
+All predefined benchmarks can be found in `caliper-benchmarks/benchmarks`. Example network configurations for Scalar DL such as client properties and contract settings can be found in `caliper-benchmarks/networks/scalardl`.
 
-A complete example is as follows.
+## Running Sample Benchmarks in Distributed Clients
+
+Before running a benchmark in distributed clients, you need to run a MQTT broker such as [Mosquitto](https://mosquitto.org/).
+
+First, launch Caliper with the master mode. In the following case, the MQTT broker is running localhost.
 
 ```
-node caliper.js benchmark run -w ../caliper-samples -c benchmark/simple/config.yaml -n network/scalardl/scalardl_simple.json
+node caliper.js launch master \\
+  --caliper-workspace /path/to/caliper-benchmarks \\
+  --caliper-benchconfig benchmarks/scenario/smallbank/config.yaml \\
+  --caliper-networkconfig networks/scalardl/scalardl_smallbank.json \\
+  --caliper-worker-remote true \\
+  --caliper-worker-communication-method mqtt \\
+  --caliper-worker-communication-address mqtt://localhost:1883
 ```
 
-**NOTE:** Caliper CLI, which is a wrapper of the above command can be used for other blockchain solutions. But it is still under development (e.g., not published to npm), so we do not use it at this moment.
+Then, launch Caliper with the worker mode.
+
+```
+node caliper.js launch worker \\
+  --caliper-workspace /path/to/caliper-benchmarks \\
+  --caliper-benchconfig benchmarks/scenario/smallbank/config.yaml \\
+  --caliper-networkconfig networks/scalardl/scalardl_smallbank.json \\
+  --caliper-worker-remote true \\
+  --caliper-worker-communication-method mqtt \\
+  --caliper-worker-communication-address mqtt://localhost:1883
+```
+
+Make sure to use same configuration files in both master and worker. When the number of workers reached to the one specified in the benchmark configuration file, the test will start.
 
 ## Checking results
 
-You can find a result HTML file (report-YYYYMMDDTXXXX.html) in the execution directory.
+You can find a result HTML file in `caliper-benchmarks`. Note that the file will be overwritten in each benchmark run.

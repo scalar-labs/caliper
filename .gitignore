@@ -2,7 +2,8 @@
 
 # Ignore any generated html files, but include the report html template
 *.html
-!/packages/caliper-core/lib/report/template/report.html
+
+!/packages/caliper-core/lib/master/report/template/report.html
 
 # Ignore DS_Store files from Mac
 **.DS_Store
@@ -21,9 +22,6 @@ zookeeper.out
 **/node_modules/
 **/log/
 **/*.log
-
-# Ignore any composer logs
-composer-logs/
 
 # Ignore code coverage logs
 **/.nyc_output/

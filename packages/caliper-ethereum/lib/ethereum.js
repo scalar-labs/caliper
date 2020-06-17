@@ -14,8 +14,9 @@
 
 'use strict';
 
+const EthereumHDKey = require('ethereumjs-wallet/hdkey');
 const Web3 = require('web3');
-const {BlockchainInterface, CaliperUtils, TxStatus} = require('@hyperledger/caliper-core');
+const {BlockchainInterface, CaliperUtils, ConfigUtil, TxStatus} = require('@hyperledger/caliper-core');
 const logger = CaliperUtils.getLogger('ethereum.js');
 
 /**
@@ -33,23 +34,32 @@ class Ethereum extends BlockchainInterface {
 
     /**
      * Create a new instance of the {Ethereum} class.
-     * @param {string} config_path The path of the network configuration file.
-     * @param {string} workspace_root The absolute path to the root location for the application configuration files.
+     * @param {number} workerIndex The zero-based index of the worker who wants to create an adapter instance. -1 for the master process.
      */
-    constructor(config_path, workspace_root) {
-        super(config_path);
+    constructor(workerIndex) {
+        super();
+        let configPath = CaliperUtils.resolvePath(ConfigUtil.get(ConfigUtil.keys.NetworkConfig));
         this.bcType = 'ethereum';
-        this.workspaceRoot = workspace_root;
-        this.ethereumConfig = require(config_path).ethereum;
+        this.ethereumConfig = require(configPath).ethereum;
         this.web3 = new Web3(this.ethereumConfig.url);
         this.web3.transactionConfirmationBlocks = this.ethereumConfig.transactionConfirmationBlocks;
+        this.clientIndex = workerIndex;
+    }
+
+    /**
+     * Retrieve the blockchain type the implementation relates to
+     * @returns {string} the blockchain type
+     */
+    getType() {
+        return this.bcType;
     }
 
     /**
      * Initialize the {Ethereum} object.
+     * @param {boolean} workerInit Indicates whether the initialization happens in the worker process.
      * @return {object} Promise<boolean> True if the account got unlocked successful otherwise false.
      */
-    init() {
+    init(workerInit) {
         if (this.ethereumConfig.contractDeployerAddressPrivateKey) {
             this.web3.eth.accounts.wallet.add(this.ethereumConfig.contractDeployerAddressPrivateKey);
         } else if (this.ethereumConfig.contractDeployerAddressPassword) {
@@ -66,12 +76,16 @@ class Ethereum extends BlockchainInterface {
         let self = this;
         logger.info('Creating contracts...');
         for (const key of Object.keys(this.ethereumConfig.contracts)) {
-            let contractData = require(CaliperUtils.resolvePath(this.ethereumConfig.contracts[key].path, this.workspaceRoot)); // TODO remove path property
+            let contractData = require(CaliperUtils.resolvePath(this.ethereumConfig.contracts[key].path)); // TODO remove path property
+            let contractGas = this.ethereumConfig.contracts[key].gas;
+            let estimateGas = this.ethereumConfig.contracts[key].estimateGas;
             this.ethereumConfig.contracts[key].abi = contractData.abi;
             promises.push(new Promise(async function(resolve, reject) {
                 let contractInstance = await self.deployContract(contractData);
                 logger.info('Deployed contract ' + contractData.name + ' at ' + contractInstance.options.address);
                 self.ethereumConfig.contracts[key].address = contractInstance.options.address;
+                self.ethereumConfig.contracts[key].gas = contractGas;
+                self.ethereumConfig.contracts[key].estimateGas = estimateGas;
                 resolve(contractInstance);
             }));
         }
@@ -86,15 +100,31 @@ class Ethereum extends BlockchainInterface {
      * @async
      */
     async getContext(name, args) {
-        let context = {fromAddress: this.ethereumConfig.fromAddress};
-        context.web3 = this.web3;
-        context.contracts = {};
+        let context = {
+            clientIndex: this.clientIndex,
+            contracts: {},
+            nonces: {},
+            web3: this.web3
+        };
+
         for (const key of Object.keys(args.contracts)) {
-            context.contracts[key] = new this.web3.eth.Contract(args.contracts[key].abi, args.contracts[key].address);
+            context.contracts[key] = {
+                contract: new this.web3.eth.Contract(args.contracts[key].abi, args.contracts[key].address),
+                gas: args.contracts[key].gas,
+                estimateGas: args.contracts[key].estimateGas
+            };
         }
-        context.nonces = {};
-        context.nonces[this.ethereumConfig.fromAddress] = await this.web3.eth.getTransactionCount(this.ethereumConfig.fromAddress);
-        if (this.ethereumConfig.fromAddressPrivateKey) {
+        if (this.ethereumConfig.fromAddress) {
+            context.fromAddress = this.ethereumConfig.fromAddress;
+        }
+        if (this.ethereumConfig.fromAddressSeed) {
+            let hdwallet = EthereumHDKey.fromMasterSeed(this.ethereumConfig.fromAddressSeed);
+            let wallet = hdwallet.derivePath('m/44\'/60\'/' + this.clientIndex + '\'/0/0').getWallet();
+            context.fromAddress = wallet.getChecksumAddressString();
+            context.nonces[context.fromAddress] = await this.web3.eth.getTransactionCount(context.fromAddress);
+            this.web3.eth.accounts.wallet.add(wallet.getPrivateKeyString());
+        } else if (this.ethereumConfig.fromAddressPrivateKey) {
+            context.nonces[this.ethereumConfig.fromAddress] = await this.web3.eth.getTransactionCount(this.ethereumConfig.fromAddress);
             this.web3.eth.accounts.wallet.add(this.ethereumConfig.fromAddressPrivateKey);
         } else if (this.ethereumConfig.fromAddressPassword) {
             await context.web3.eth.personal.unlockAccount(this.ethereumConfig.fromAddress, this.ethereumConfig.fromAddressPassword, 1000);
@@ -170,23 +200,32 @@ class Ethereum extends BlockchainInterface {
     async sendTransaction(context, contractID, contractVer, methodCall, timeout) {
         let status = new TxStatus();
         let params = {from: context.fromAddress};
+        let contractInfo = context.contracts[contractID];
         try {
             context.engine.submitCallback(1);
             let receipt = null;
             let methodType = 'send';
             if (methodCall.isView) {
                 methodType = 'call';
-            } else {
+            } else if (context.nonces && (typeof context.nonces[context.fromAddress] !== 'undefined')) {
                 let nonce = context.nonces[context.fromAddress];
                 context.nonces[context.fromAddress] = nonce + 1;
                 params.nonce = nonce;
             }
             if (methodCall.args) {
-                params.gas = 1000 + await context.contracts[contractID].methods[methodCall.verb](...methodCall.args).estimateGas();
-                receipt = await context.contracts[contractID].methods[methodCall.verb](...methodCall.args)[methodType](params);
+                if (contractInfo.gas && contractInfo.gas[methodCall.verb]) {
+                    params.gas = contractInfo.gas[methodCall.verb];
+                } else if (contractInfo.estimateGas) {
+                    params.gas = 1000 + await contractInfo.contract.methods[methodCall.verb](...methodCall.args).estimateGas();
+                }
+                receipt = await contractInfo.contract.methods[methodCall.verb](...methodCall.args)[methodType](params);
             } else {
-                params.gas = 1000 + await context.contracts[contractID].methods[methodCall.verb].estimateGas(params);
-                receipt = await context.contracts[contractID].methods[methodCall.verb]()[methodType](params);
+                if (contractInfo.gas && contractInfo.gas[methodCall.verb]) {
+                    params.gas = contractInfo.gas[methodCall.verb];
+                } else if (contractInfo.estimateGas) {
+                    params.gas = 1000 + await contractInfo.contract.methods[methodCall.verb].estimateGas(params);
+                }
+                receipt = await contractInfo.contract.methods[methodCall.verb]()[methodType](params);
             }
             status.SetID(receipt.transactionHash);
             status.SetResult(receipt);
@@ -243,13 +282,14 @@ class Ethereum extends BlockchainInterface {
     }
 
     /**
-     * It passes deployed contracts addresses to all clients
+     * It passes deployed contracts addresses to all clients (only known after deploy contract)
      * @param {Number} number of clients to prepare
      * @returns {Array} client args
+     * @async
      */
-    async prepareClients(number) {
+    async prepareWorkerArguments(number) {
         let result = [];
-        for (let i = 0 ; i< number ; i++) {
+        for (let i = 0 ; i<= number ; i++) {
             result[i] = {contracts: this.ethereumConfig.contracts};
         }
         return result;

@@ -14,5 +14,4 @@
 
 'use strict';
 
-module.exports.AdminClient = require('./lib/fiscoBcos');
-module.exports.ClientFactory = require('./lib/fiscoBcosClientFactory');
+module.exports.AdapterFactory = require('./lib/adapterFactory').adapterFactory;

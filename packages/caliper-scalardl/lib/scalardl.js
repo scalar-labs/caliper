@@ -9,8 +9,9 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 const {ClientService} = require('@scalar-labs/scalardl-node-client-sdk');
-const {BlockchainInterface, CaliperUtils, TxStatus} = require('@hyperledger/caliper-core');
+const {BlockchainInterface, CaliperUtils, ConfigUtil, TxStatus} = require('@hyperledger/caliper-core');
 const logger = CaliperUtils.getLogger('scalardl.js');
 
 /**
@@ -61,17 +62,24 @@ function getFunctionMap(config) {
  * Implements {BlockchainInterface} for a ScalarDL backend.
  */
 class ScalarDL extends BlockchainInterface {
+    /**
+     * Constructor
+     * @param {number} workerIndex The zero-based index of the worker who wants to create an adapter instance. -1 for the master process. Currently unused.
+     */
+    constructor(workerIndex) {
+        super();
+        this.configPath = CaliperUtils.resolvePath(ConfigUtil.get(ConfigUtil.keys.NetworkConfig));
+        this.bcType = 'scalardl';
+        this.workspaceRoot = path.resolve(ConfigUtil.get(ConfigUtil.keys.Workspace));
+        this.clientIndex = workerIndex;
+    }
 
     /**
-   * Create a new instance of the {ScalarDL} class.
-   * @param {string} configPath The path of the Scalar DL network configuration file.
-   * @param {string} workspaceRoot The absolute path to the root location for the application configuration files.
-   */
-    constructor(configPath, workspaceRoot) {
-        super(configPath);
-        this.statusInterval = null;
-        this.bcType = 'scalardl';
-        this.workspaceRoot = workspaceRoot;
+     * Retrieve the blockchain type the implementation relates to
+     * @returns {string} the blockchain type
+     */
+    getType() {
+        return this.bcType;
     }
 
     /**
