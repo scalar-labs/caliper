@@ -38,12 +38,41 @@ class Ethereum extends BlockchainInterface {
      */
     constructor(workerIndex) {
         super();
-        let configPath = CaliperUtils.resolvePath(ConfigUtil.get(ConfigUtil.keys.NetworkConfig));
         this.bcType = 'ethereum';
-        this.ethereumConfig = require(configPath).ethereum;
+
+        let configPath = CaliperUtils.resolvePath(ConfigUtil.get(ConfigUtil.keys.NetworkConfig));
+        let ethereumConfig = require(configPath).ethereum;
+
+        // throws on configuration error
+        this.checkConfig(ethereumConfig);
+
+        this.ethereumConfig = ethereumConfig;
         this.web3 = new Web3(this.ethereumConfig.url);
         this.web3.transactionConfirmationBlocks = this.ethereumConfig.transactionConfirmationBlocks;
         this.clientIndex = workerIndex;
+    }
+
+    /**
+     * Check the ethereum networkconfig file for errors, throw if invalid
+     * @param {object} ethereumConfig The ethereum networkconfig to check.
+     */
+    checkConfig(ethereumConfig) {
+        if (!ethereumConfig.url) {
+            throw new Error(
+                'No URL given to access the Ethereum SUT. Please check your network configuration. ' +
+                'Please see https://hyperledger.github.io/caliper/v0.3/ethereum-config/ for more info.'
+            );
+        }
+
+        if (ethereumConfig.url.toLowerCase().indexOf('http') === 0) {
+            throw new Error(
+                'Ethereum benchmarks must not use http(s) RPC connections, as there is no way to guarantee the ' +
+                'order of submitted transactions when using other transports. For more information, please see ' +
+                'https://github.com/hyperledger/caliper/issues/776#issuecomment-624771622'
+            );
+        }
+
+        //TODO: add validation logic for the rest of the configuration object
     }
 
     /**
@@ -101,11 +130,21 @@ class Ethereum extends BlockchainInterface {
      */
     async getContext(name, args) {
         let context = {
+            chainId: 1,
             clientIndex: this.clientIndex,
+            gasPrice: 0,
             contracts: {},
             nonces: {},
             web3: this.web3
         };
+
+        context.gasPrice = this.ethereumConfig.gasPrice !== undefined
+            ? this.ethereumConfig.gasPrice
+            : await this.web3.eth.getGasPrice();
+
+        context.chainId = this.ethereumConfig.chainId !== undefined
+            ? this.ethereumConfig.chainId
+            : await this.web3.eth.getChainId();
 
         for (const key of Object.keys(args.contracts)) {
             context.contracts[key] = {
@@ -114,9 +153,16 @@ class Ethereum extends BlockchainInterface {
                 estimateGas: args.contracts[key].estimateGas
             };
         }
+
         if (this.ethereumConfig.fromAddress) {
             context.fromAddress = this.ethereumConfig.fromAddress;
         }
+
+        if (this.ethereumConfig.contractDeployerAddress) {
+            context.contractDeployerAddress = this.ethereumConfig.contractDeployerAddress;
+            context.contractDeployerAddressPrivateKey = this.ethereumConfig.contractDeployerAddressPrivateKey;
+        }
+
         if (this.ethereumConfig.fromAddressSeed) {
             let hdwallet = EthereumHDKey.fromMasterSeed(this.ethereumConfig.fromAddressSeed);
             let wallet = hdwallet.derivePath('m/44\'/60\'/' + this.clientIndex + '\'/0/0').getWallet();
@@ -201,42 +247,66 @@ class Ethereum extends BlockchainInterface {
         let status = new TxStatus();
         let params = {from: context.fromAddress};
         let contractInfo = context.contracts[contractID];
-        try {
-            context.engine.submitCallback(1);
-            let receipt = null;
-            let methodType = 'send';
-            if (methodCall.isView) {
-                methodType = 'call';
-            } else if (context.nonces && (typeof context.nonces[context.fromAddress] !== 'undefined')) {
-                let nonce = context.nonces[context.fromAddress];
-                context.nonces[context.fromAddress] = nonce + 1;
-                params.nonce = nonce;
-            }
-            if (methodCall.args) {
-                if (contractInfo.gas && contractInfo.gas[methodCall.verb]) {
-                    params.gas = contractInfo.gas[methodCall.verb];
-                } else if (contractInfo.estimateGas) {
-                    params.gas = 1000 + await contractInfo.contract.methods[methodCall.verb](...methodCall.args).estimateGas();
-                }
-                receipt = await contractInfo.contract.methods[methodCall.verb](...methodCall.args)[methodType](params);
-            } else {
-                if (contractInfo.gas && contractInfo.gas[methodCall.verb]) {
-                    params.gas = contractInfo.gas[methodCall.verb];
-                } else if (contractInfo.estimateGas) {
-                    params.gas = 1000 + await contractInfo.contract.methods[methodCall.verb].estimateGas(params);
-                }
-                receipt = await contractInfo.contract.methods[methodCall.verb]()[methodType](params);
-            }
-            status.SetID(receipt.transactionHash);
-            status.SetResult(receipt);
-            status.SetVerification(true);
-            status.SetStatusSuccess();
-        } catch (err) {
+
+        context.engine.submitCallback(1);
+        let receipt = null;
+        let methodType = 'send';
+        if (methodCall.isView) {
+            methodType = 'call';
+        } else if (context.nonces && (typeof context.nonces[context.fromAddress] !== 'undefined')) {
+            let nonce = context.nonces[context.fromAddress];
+            context.nonces[context.fromAddress] = nonce + 1;
+            params.nonce = nonce;
+
+            // leaving these values unset causes web3 to fetch gasPrice and
+            // chainId on the fly. This can cause transactions to be
+            // reordered, which in turn causes nonce failures
+            params.gasPrice = context.gasPrice;
+            params.chainId = context.chainId;
+        }
+
+        const onFailure = (err) => {
             status.SetStatusFail();
             logger.error('Failed tx on ' + contractID + ' calling method ' + methodCall.verb + ' nonce ' + params.nonce);
             logger.error(err);
+        };
+
+        const onSuccess = (rec) => {
+            status.SetID(rec.transactionHash);
+            status.SetResult(rec);
+            status.SetVerification(true);
+            status.SetStatusSuccess();
+        };
+
+        if (methodCall.args) {
+            if (contractInfo.gas && contractInfo.gas[methodCall.verb]) {
+                params.gas = contractInfo.gas[methodCall.verb];
+            } else if (contractInfo.estimateGas) {
+                params.gas = 1000 + await contractInfo.contract.methods[methodCall.verb](...methodCall.args).estimateGas();
+            }
+
+            try {
+                receipt = await contractInfo.contract.methods[methodCall.verb](...methodCall.args)[methodType](params);
+                onSuccess(receipt);
+            } catch (err) {
+                onFailure(err);
+            }
+        } else {
+            if (contractInfo.gas && contractInfo.gas[methodCall.verb]) {
+                params.gas = contractInfo.gas[methodCall.verb];
+            } else if (contractInfo.estimateGas) {
+                params.gas = 1000 + await contractInfo.contract.methods[methodCall.verb].estimateGas(params);
+            }
+
+            try {
+                receipt = await contractInfo.contract.methods[methodCall.verb]()[methodType](params);
+                onSuccess(receipt);
+            } catch (err) {
+                onFailure(err);
+            }
         }
-        return Promise.resolve(status);
+
+        return status;
     }
 
     /**

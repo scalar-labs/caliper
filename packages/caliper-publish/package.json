@@ -1,7 +1,7 @@
 {
     "name": "caliper-publish",
     "description": "Hyperledger Caliper internal CLI for publishing packages",
-    "version": "0.3.0",
+    "version": "0.3.2",
     "private": true,
     "repository": {
         "type": "git",
@@ -21,7 +21,7 @@
         "npm": ">=5.6.0"
     },
     "dependencies": {
-        "yargs": "15.1.0"
+        "yargs": "15.3.1"
     },
     "devDependencies": {
         "chai": "^3.5.0",

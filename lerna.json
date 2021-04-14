@@ -7,7 +7,6 @@
 	"packages": [
 	    "packages/caliper-core",
         "packages/caliper-burrow",
-        "packages/caliper-composer",
         "packages/caliper-ethereum",
         "packages/caliper-fabric",
         "packages/caliper-fisco-bcos",
@@ -16,8 +15,11 @@
         "packages/caliper-scalardl",
         "packages/caliper-cli",
         "packages/caliper-publish",
-        "packages/caliper-tests-integration"
-	],
-	"version": "0.3.0",
+        "packages/caliper-tests-integration",
+        "packages/caliper-gui-dashboard",
+        "packages/caliper-gui-server",
+        "packages/generator-caliper"
+    ],
+	"version": "0.3.2",
 	"hoist": true
   }
