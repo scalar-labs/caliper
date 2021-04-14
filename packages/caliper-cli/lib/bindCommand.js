@@ -16,7 +16,7 @@
 
 const { CaliperUtils } = require('@hyperledger/caliper-core');
 
-const Bind = require('./lib/bind.js');
+const BindCommon = require('./lib/bindCommon');
 
 // enforces singletons
 const checkFn = (argv) => {
@@ -46,5 +46,5 @@ module.exports.builder = function (yargs){
 };
 
 module.exports.handler = (argv) => {
-    return argv.thePromise = Bind.handler(argv);
+    return argv.thePromise = BindCommon.handler(argv, true);
 };
